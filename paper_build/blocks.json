@@ -1,0 +1,270 @@
+[
+ [
+  "Title",
+  "<b>Shadowed in Vector Space: Zero-Label Detection and Resolution of</b><b>Stale Version Collisions in Retrieval-Augmented Generation</b>"
+ ],
+ [
+  "Author",
+  "<b>Soham Sharma</b>Independent AI Researchsoham@botmartz.com"
+ ],
+ [
+  "AbstractTitle",
+  "Abstract"
+ ],
+ [
+  "Abstract",
+  "Retrieval-Augmented Generation (RAG) systems deployed over dynamic enterprise corpora suffer from a silent reliability failure: when source documents undergo factual revisions (e.g., policy updates, specification changes, or deadline adjustments), residual outdated chunks (<span class=\"m\">O</span>) frequently coexist with updated chunks (<span class=\"m\">R</span>) in the retrieval index due to incremental upserts, secondary FAQ summaries, or delayed shard purging. Recent empirical benchmarks—including <i>HoH</i> (<b>ouyang2025hoh?</b>) and <i>StaleBench</i> (<b>singh2026stalebench?</b>)—demonstrate that retrieving <span class=\"m\">R</span> and <span class=\"m\">O</span> simultaneously degrades downstream Large Language Model (LLM) accuracy by over <span class=\"m\">20%</span> and leaves roughly <span class=\"m\">50%</span> of generated answers stale due to generator position bias. However, existing countermeasures either require ground-truth oracle labels for post-hoc auditing or rely on supervised classifiers over globally pooled sentence embeddings (<i>ConflictRAG</i>; (<b>wang2026conflictrag?</b>)) that dilute localized <span class=\"m\">m</span>-token factual edits by a factor of <span class=\"m\">O(m/L)</span> across chunk length <span class=\"m\">L</span>, necessitating expensive LLM fallbacks (<span class=\"m\">&gt;800 ms</span> latency)."
+ ],
+ [
+  "Abstract",
+  "In this paper, we formalize the <span class=\"m\">O(1/L)</span><b> </b><b>Pooling Dilution Theorem</b>, proving why standard dense bi-encoders, diversity filters such as Maximal Marginal Relevance (MMR), and pooled-embedding conflict classifiers fail under fine-grained temporal updates. To overcome this bottleneck, we introduce the <b>Stale Collision Score (</b><span class=\"m\">SCS<sup>*</sup></span><b>)</b> and <b>Collision Graph Pruning (CGP)</b>—a training-free, zero-label PyTorch layer operating at the retriever boundary. By decomposing the retriever’s unpooled token hidden states into a <i>Global Shared Frame</i> and a <i>Query-Conditioned Orthogonal Residual Span</i>, <span class=\"m\">SCS<sup>*</sup></span> isolates localized numeric, temporal, and entity mutations while normalizing benign unit-converted equivalences (e.g., 14 days vs. two weeks). Furthermore, we expose and empirically validate the <b>MMR Diversity Paradox</b>: under tight retrieval score ties, standard MMR diversity filtering actively <i>increases</i> Stale-Answer Rates (SAR) up to <span class=\"m\">85.4%</span> by discarding the updated document as a redundant near-duplicate of the outdated document. Evaluated across <span class=\"m\">2,400</span> multi-version corpus chunks, three dense retriever backbones (BGE-base, E5-base, MiniLM-L6), and live Qwen2.5-1.5B-Instruct generation on an NVIDIA A100 GPU, <span class=\"m\">SCS<sup>*</sup>+CGP</span> achieves <b>0.966–1.000 AUROC</b>, lifts live LLM fresh answer accuracy from <b>43.8% to 97.5%</b> (reducing SAR from <span class=\"m\">56.2%</span> to <span class=\"m\">0.0%</span>), and executes <span class=\"m\">3.6×</span> faster than pairwise DeBERTa-v3 NLI cross-encoders and <span class=\"m\">18×</span> faster than LLM fallbacks."
+ ],
+ [
+  "Heading1",
+  "1Introduction"
+ ],
+ [
+  "FirstParagraph",
+  "Retrieval-Augmented Generation (RAG) mitigates parametric hallucinations in Large Language Models (LLMs) by grounding responses in an external corpus <span class=\"m\">C</span> (<b>lewis2020rag?</b>). While standard retrieval benchmarks such as MS MARCO and Natural Questions model <span class=\"m\">C</span> as a static snapshot, enterprise knowledge bases evolve continuously (<span class=\"m\">C<sub>t</sub>→C<sub>t+1</sub></span>). When a factual attribute within a document is revised across versions (<span class=\"m\">v<sub>1</sub>→v<sub>2</sub>→v<sub>3</sub></span>)—such as a billing dispute window shifting from 60 days to 30 days to 14 days, an API burst limit changing from 1,200 to 3,000 req/min, or an executive compliance officer changing—outdated assertions rarely vanish cleanly from the vector index. Outdated passages (<span class=\"m\">O</span>) persist alongside current passages (<span class=\"m\">R</span>) due to append-only chunk ingestion, secondary FAQ sheets quoting legacy rules, or asynchronous shard updates (<b>tantaroudas2026after?</b>)."
+ ],
+ [
+  "BodyText",
+  "Recent empirical studies prove that <span class=\"m\">R+O</span> coexistence severely compromises RAG reliability. Ouyang et al. (<b>ouyang2025hoh?</b>) introduced <i>HoH</i>, showing that when outdated passages (<span class=\"m\">O</span>) coexist with current passages (<span class=\"m\">R</span>) in the top-<span class=\"m\">k</span> prompt window, LLM accuracy drops by <span class=\"m\">&gt;20%</span>, and retrieving <span class=\"m\">O</span> alone induces severe overconfidence. Similarly, Singh (<b>singh2026stalebench?</b>) demonstrated in <i>StaleBench</i> that even after immediate re-indexing of updated facts, roughly half of generated answers remain stale because both <span class=\"m\">R</span> and <span class=\"m\">O</span> appear in top-<span class=\"m\">k</span>, triggering generator position bias."
+ ],
+ [
+  "BodyText",
+  "Despite diagnosing this failure, existing literature lacks an unsupervised, low-latency mechanism to eliminate version collisions before generation:"
+ ],
+ [
+  "Normal",
+  "<b>Post-Hoc Oracle Dependency:</b> Benchmarks such as <i>HoH</i> (<b>ouyang2025hoh?</b>), <i>Still Fresh?</i> (<b>stillfresh2026?</b>), and <i>StaleBench</i> (<b>singh2026stalebench?</b>) measure staleness post-hoc using ground-truth <span class=\"m\">(fact<sub>old</sub>,fact<sub>new</sub>)</span> oracle labels. Production systems have no ground-truth oracle for live user queries."
+ ],
+ [
+  "Normal",
+  "<b>Pooling Dilution in Supervised Classifiers:</b> Wang et al. (<b>wang2026conflictrag?</b>) proposed <i>ConflictRAG</i>, where Stage 1 feeds globally pooled embeddings into a supervised MLP and Stage 2 falls back to an LLM judge (GPT-4o-mini, <span class=\"m\">845 ms</span>) on uncertain pairs. However, when a version update alters only <span class=\"m\">1</span>–<span class=\"m\">3</span> tokens inside a <span class=\"m\">250</span>-word chunk, global mean pooling compresses the token perturbation by <span class=\"m\">O(1/L)</span>. Under domain shift and adversarial regimes (such as unit-converted duplicates or noisy OCR text), pooled MLPs suffer severe sensitivity loss."
+ ],
+ [
+  "Normal",
+  "<b>The MMR Diversity Paradox:</b> Production RAG pipelines routinely enable Maximal Marginal Relevance (MMR; (<b>carbonell1998mmr?</b>)) to filter redundant chunks. We prove theoretically and empirically that under temporal drift, MMR is actively harmful: when <span class=\"m\">d<sub>old</sub></span> ranks marginally ahead of <span class=\"m\">d<sub>new</sub></span>, MMR penalizes <span class=\"m\">d<sub>new</sub></span> for its <span class=\"m\">&gt;95%</span> global cosine similarity to <span class=\"m\">d<sub>old</sub></span>, classifies the updated policy as a redundant duplicate, and <b>deletes the updated evidence</b>."
+ ],
+ [
+  "FirstParagraph",
+  "<b>Contributions.</b> Our work makes four key contributions:"
+ ],
+ [
+  "Normal",
+  "<b>Theoretical Proof of Pooling Dilution (Section</b><b> </b><b>3</b><b>):</b> We formulate the <span class=\"m\">O(1/L)</span><i> </i><i>Pooling Dilution Theorem</i> and formally derive the <i>MMR Inversion Condition</i>, explaining why pooled embeddings and diversity filters fail on localized temporal edits."
+ ],
+ [
+  "Normal",
+  "<b>Stale Collision Score (</b><span class=\"m\">SCS<sup>*</sup></span><b>, Section</b><b> </b><b>4</b><b>):</b> We design a training-free, zero-label geometric detector operating directly on unpooled token hidden states <span class=\"m\">H∈R<sup>L×D</sup></span> from the retriever’s forward pass. <span class=\"m\">SCS<sup>*</sup></span> combines <i>Scale-Invariant Rank Tie Density</i> (<span class=\"m\">Φ<sub>tie</sub></span>), <i>Soft Frame Equivalence</i> (<span class=\"m\">Φ<sub>frame</sub></span>), and <i>Query-Conditioned Orthogonal Span Divergence</i> (<span class=\"m\">Ψ<sub>span</sub></span>) with canonical unit equivalence normalization."
+ ],
+ [
+  "Normal",
+  "<b>Collision Graph Pruning (CGP, Section</b><b> </b><b>4.1</b><b>):</b> We introduce a graph-pruning algorithm over the <span class=\"m\">k×k</span> collision matrix that resolves multi-version chains (<span class=\"m\">v<sub>1</sub>,v<sub>2</sub>,v<sub>3</sub></span>) via Metadata Timestamp Authority or a Zero-Metadata Lexical Supersession Fallback."
+ ],
+ [
+  "Normal",
+  "<b>Comprehensive Multi-Backbone &amp; Live LLM Evaluation (Section</b><b> </b><b>5</b><b>):</b> Across <span class=\"m\">480</span> multi-version scenarios (<span class=\"m\">2,400</span> chunks, <span class=\"m\">5,760</span> pairwise evaluations across BGE-base, E5-base, and MiniLM-L6) and a live Qwen2.5-1.5B-Instruct generation audit, <span class=\"m\">SCS<sup>*</sup>+CGP</span> achieves <span class=\"m\">0.966</span>–<span class=\"m\">1.000</span> AUROC, eliminates the MMR Diversity Paradox, and reduces live LLM Stale-Answer Rate from <span class=\"m\">56.2%</span> (Vanilla) and <span class=\"m\">62.5%</span> (MMR) down to <span class=\"m\">0.0%</span>."
+ ],
+ [
+  "Heading1",
+  "2Related Work"
+ ],
+ [
+  "FirstParagraph",
+  "<b>Temporal Drift and Staleness in RAG.</b> Early temporal QA benchmarks such as <i>TimeQA</i> (<b>chen2021timeqa?</b>) and <i>SituatedQA</i> (<b>zhang2021situatedqa?</b>) studied temporal staleness inside parametric LLM weights. In retrieval-augmented settings, <i>HoH</i> (<b>ouyang2025hoh?</b>) proved that coexisting outdated passages (<span class=\"m\">O</span>) and current passages (<span class=\"m\">R</span>) degrade generation accuracy by <span class=\"m\">&gt;20%</span>. <i>Still Fresh? / DriftBench</i> (<b>stillfresh2026?</b>) examined macro-level retriever rank correlations across yearly documentation snapshots, whereas <i>StaleBench</i> (<b>singh2026stalebench?</b>) isolated post-update catch-up latency and generator position bias across sparse, dense, and reranked pipelines. Tantaroudas et al. (<b>tantaroudas2026after?</b>) compared vector re-indexing against live tool-calling, and Prajapati (<b>prajapati2026livevectorlake?</b>) proposed <i>LiveVectorLake</i>, using SHA-256 chunk hashing to move overwritten file chunks to cold storage. However, cryptographic hashing fails whenever outdated facts persist in secondary summary documents, wikis, or FAQ sheets with different file hashes. <span class=\"m\">SCS<sup>*</sup></span> detects semantic version collisions across arbitrary document boundaries without requiring file lineage."
+ ],
+ [
+  "BodyText",
+  "<b>Knowledge Conflict Detection.</b> Prior conflict detectors rely on white-box probing of internal LLM activations (<i>Micro-Act</i>; (<b>microact2025?</b>)), multi-pass LLM critique (<i>Self-RAG</i>; (<b>asai2024selfrag?</b>), <i>CRAG</i>; (<b>yan2024crag?</b>)), or supervised MLP+LLM cascades (<i>ConflictRAG</i>; (<b>wang2026conflictrag?</b>)). Unlike pairwise NLI cross-encoders (which lack topical frame gating and incur <span class=\"m\">&gt;160 ms</span> latency for <span class=\"m\">k=5</span>) or <i>ConflictRAG</i> (which requires supervised training and an <span class=\"m\">845 ms</span> LLM fallback), <span class=\"m\">SCS<sup>*</sup></span> operates purely onretriever token states in <span class=\"m\">∼45 ms</span> per top-<span class=\"m\">5</span> query (<span class=\"m\">4.5 ms/pair</span>) with zero LLM calls."
+ ],
+ [
+  "Heading1",
+  "3Problem Formulation &amp; The Geometry of Drift"
+ ],
+ [
+  "FirstParagraph",
+  "Let <span class=\"m\">C<sub>t</sub>={d<sub>1</sub>,…,d<sub>N</sub>}</span> be a corpus encoded by a transformer bi-encoder <span class=\"m\">f<sub>θ</sub></span>. For a chunk <span class=\"m\">d<sub>i</sub></span> of <span class=\"m\">L<sub>i</sub></span> tokens, the final encoder layer produces an unpooled hidden state matrix <span class=\"m\">H<sub>i</sub>=[h<sub>i,1</sub>,…,h<sub>i,L<sub>i</sub></sub>]<sup>⊤</sup>∈R<sup>L<sub>i</sub>×D</sup></span>, which mean pooling <span class=\"m\">P(⋅)</span> and <span class=\"m\">ℓ<sub>2</sub></span>-normalization map onto the unit hypersphere <span class=\"m\">S<sup>D−1</sup></span>:"
+ ],
+ [
+  "BodyText",
+  "<div class=\"eq\"><span class=\"ov\">h</span><sub>i</sub>=<span class=\"frac\"><span>1</span><span>L<sub>i</sub></span></span>∑<sub>l=1</sub><sup>L<sub>i</sub></sup>h<sub>i,l</sub>,  v<sub>i</sub>=<span class=\"frac\"><span><span class=\"ov\">h</span><sub>i</sub></span><span>∥<span class=\"ov\">h</span><sub>i</sub>∥<sub>2</sub></span></span>∈S<sup>D−1</sup></div>"
+ ],
+ [
+  "FirstParagraph",
+  "<b>Theorem 1</b> (The <span class=\"m\">O(1/L)</span> Pooling Dilution Bound).  <i>Let</i><i> </i><span class=\"m\">d<sub>i</sub></span><i> </i><i>(</i><span class=\"m\">O</span><i>) and</i><i> </i><span class=\"m\">d<sub>j</sub>=Δ<sub>M</sub>(d<sub>i</sub>)</span><i> </i><i>(</i><span class=\"m\">R</span><i>) be two versions of a document of length</i><i> </i><span class=\"m\">L</span><i> </i><i>differing on a factual token span</i><i> </i><span class=\"m\">M⊂{1,…,L}</span><i> </i><i>of size</i><i> </i><span class=\"m\">m=|M|≪L</span><i>. Assume token hidden states satisfy</i><i> </i><span class=\"m\">∥h<sub>⋅,l</sub>∥<sub>2</sub>≤B</span><i>, unnormalized pooled vectors satisfy</i><i> </i><span class=\"m\">∥<span class=\"ov\">h</span>∥<sub>2</sub>≥c<sub>0</sub>&gt;0</span><i>, and contextual perturbation outside an effective syntactic neighborhood</i><i> </i><span class=\"m\">M<sub>ϵ</sub>⊃M</span><i> </i><i>(</i><span class=\"m\">m<sub>ϵ</sub>≪L</span><i>) is bounded by</i><i> </i><span class=\"m\">ϵ→0</span><i>. Then the Euclidean distance and cosine divergence of the globally pooled embeddings decay inversely with chunk length</i><i> </i><span class=\"m\">L</span><i>:</i><i> </i><div class=\"eq\">∥v<sub>i</sub>−v<sub>j</sub>∥<sub>2</sub>&amp;≤<span class=\"frac\"><span>4Bm<sub>ϵ</sub></span><span>c<sub>0</sub>L</span></span>+O(ϵ)=O(<span class=\"frac\"><span>m<sub>ϵ</sub></span><span>L</span></span>),<br>1−cos(v<sub>i</sub>,v<sub>j</sub>)&amp;=<span class=\"frac\"><span>1</span><span>2</span></span>∥v<sub>i</sub>−v<sub>j</sub>∥<sub>2</sub><sup>2</sup>=O(<span class=\"frac\"><span>m<sub>ϵ</sub><sup>2</sup></span><span>L<sup>2</sup></span></span>)</div>"
+ ],
+ [
+  "FirstParagraph",
+  "<i>Proof.</i> Splitting <span class=\"m\"><span class=\"ov\">h</span><sub>i</sub>−<span class=\"ov\">h</span><sub>j</sub></span> across <span class=\"m\">M<sub>ϵ</sub></span> and <span class=\"m\">M<sub>ϵ</sub><sup>c</sup></span> and applying the triangle inequality with <span class=\"m\">∥h<sub>i,l</sub>−h<sub>j,l</sub>∥<sub>2</sub>≤2B</span> on <span class=\"m\">M<sub>ϵ</sub></span> yields <span class=\"m\">∥<span class=\"ov\">h</span><sub>i</sub>−<span class=\"ov\">h</span><sub>j</sub>∥<sub>2</sub>≤<span class=\"frac\"><span>2Bm<sub>ϵ</sub></span><span>L</span></span>+ϵ</span>. Applying the spherical projection Lipschitz bound <span class=\"m\">∥<span class=\"frac\"><span>x</span><span>∥x∥<sub>2</sub></span></span>−<span class=\"frac\"><span>y</span><span>∥y∥<sub>2</sub></span></span>∥<sub>2</sub>≤<span class=\"frac\"><span>2</span><span>c<sub>0</sub></span></span>∥x−y∥<sub>2</sub></span> establishes <span class=\"m\">∥v<sub>i</sub>−v<sub>j</sub>∥<sub>2</sub>=O(m<sub>ϵ</sub>/L)</span> and <span class=\"m\">1−cos(v<sub>i</sub>,v<sub>j</sub>)=O(m<sub>ϵ</sub><sup>2</sup>/L<sup>2</sup>)</span>. ◻"
+ ],
+ [
+  "BodyText",
+  "<b>Corollary 1</b> (The MMR Diversity Paradox).  <i>Suppose</i><i> </i><span class=\"m\">d<sub>old</sub></span><i> </i><i>ranks marginally higher than</i><i> </i><span class=\"m\">d<sub>new</sub></span><i> </i><i>(</i><span class=\"m\">s(q,d<sub>old</sub>)=s(q,d<sub>new</sub>)+δ</span><i> </i><i>for tiny</i><i> </i><span class=\"m\">δ&gt;0</span><i>), entering the selected MMR set</i><i> </i><span class=\"m\">S={d<sub>old</sub>}</span><i> </i><i>first. At step 2, MMR scores candidates via</i><i> </i><span class=\"m\">MMR(d)=λs(q,d)−(1−λ)cos(v<sub>d</sub>,v<sub>old</sub>)</span><i>. Because</i><i> </i><span class=\"m\">cos(v<sub>new</sub>,v<sub>old</sub>)=1−O(m<sub>ϵ</sub><sup>2</sup>/L<sup>2</sup>)≈1</span><i>,</i><i> </i><span class=\"m\">d<sub>new</sub></span><i> </i><i>receives the maximum redundancy penalty</i><i> </i><span class=\"m\">−(1−λ)</span><i>. Whenever a distractor</i><i> </i><span class=\"m\">d<sub>dist</sub></span><i> </i><i>satisfies</i><i> </i><span class=\"m\">s(q,d<sub>new</sub>)−s(q,d<sub>dist</sub>)&lt;<span class=\"frac\"><span>1−λ</span><span>λ</span></span>(1−cos(v<sub>dist</sub>,v<sub>old</sub>))</span><i>, MMR</i><i> </i><b><i>deletes the updated document</i></b><b><i> </i></b><span class=\"m\">d<sub>new</sub></span><i> </i><i>in favor of</i><i> </i><span class=\"m\">d<sub>dist</sub></span><i>, leaving only stale evidence in the prompt.</i>"
+ ],
+ [
+  "Heading1",
+  "4Methodology: <span class=\"m\">SCS<sup>*</sup></span> and CGP"
+ ],
+ [
+  "FirstParagraph",
+  "To overcome <span class=\"m\">O(1/L)</span> dilution without supervised training or LLM calls, we compute the <b>Stale Collision Score</b> <span class=\"m\">SCS<sup>*</sup>(d<sub>i</sub>,d<sub>j</sub>∣q)∈[0,1]</span> directly from the unpooled token states <span class=\"m\">H<sub>i</sub>∈R<sup>L<sub>i</sub>×D</sup></span> across top-<span class=\"m\">k</span> candidates <span class=\"m\">K<sub>q</sub>={d<sub>1</sub>,…,d<sub>k</sub>}</span>:"
+ ],
+ [
+  "BodyText",
+  "<div class=\"eq\">SCS<sup>*</sup>(d<sub>i</sub>,d<sub>j</sub>∣q)&amp;=Φ<sub>tie</sub>(d<sub>i</sub>,d<sub>j</sub>∣q)⋅Φ<sub>frame</sub>(v<sub>i</sub>,v<sub>j</sub>)<br>&amp; ⋅Ψ<sub>span</sub>(H<sub>i</sub>,H<sub>j</sub>∣H<sub>q</sub>)</div>"
+ ],
+ [
+  "FirstParagraph",
+  "<b>1. Scale-Invariant Rank Tie Density (</b><span class=\"m\">Φ<sub>tie</sub></span><b>):</b> Normalized by the top-<span class=\"m\">k</span> score standard deviation <span class=\"m\">σ<sub>q</sub>=std({s<sub>1</sub>,…,s<sub>k</sub>})+ε</span>:"
+ ],
+ [
+  "BodyText",
+  "<div class=\"eq\">Φ<sub>tie</sub>(d<sub>i</sub>,d<sub>j</sub>∣q)=exp(−<span class=\"frac\"><span>|s(q,d<sub>i</sub>)−s(q,d<sub>j</sub>)|</span><span>τ<sub>tie</sub>⋅σ<sub>q</sub></span></span>)</div>"
+ ],
+ [
+  "FirstParagraph",
+  "<b>2. Soft Sigmoidal Frame Equivalence (</b><span class=\"m\">Φ<sub>frame</sub></span><b>):</b> Gates pairwise comparison so only chunks sharing the same policy or entity frame (<span class=\"m\">γ=0.80,β=32</span>) can trigger a version collision:"
+ ],
+ [
+  "BodyText",
+  "<div class=\"eq\">Φ<sub>frame</sub>(v<sub>i</sub>,v<sub>j</sub>)=<span class=\"frac\"><span>1</span><span>1+exp(−β(cos(v<sub>i</sub>,v<sub>j</sub>)−γ))</span></span></div>"
+ ],
+ [
+  "FirstParagraph",
+  "Crucially, <span class=\"m\">Φ<sub>frame</sub></span> prevents false-positive pruning on cross-clause distractors that happen to mention numbers or dates in unrelated operational rules."
+ ],
+ [
+  "BodyText",
+  "<b>3. Query-Conditioned Orthogonal Span Divergence (</b><span class=\"m\">Ψ<sub>span</sub></span><b>):</b> For each token <span class=\"m\">l</span> in chunk <span class=\"m\">d∈{d<sub>i</sub>,d<sub>j</sub>}</span>, we compute query-token alignment <span class=\"m\">a<sub>d,l</sub>=(max<sub>m</sub>⟨<span class=\"acc\">ĥ</span><sub>q,m</sub>,<span class=\"acc\">ĥ</span><sub>d,l</sub>⟩)⋅w<sub>crit</sub>(t<sub>d,l</sub>)</span> and isolate the top-<span class=\"m\">p</span> (<span class=\"m\">p=6</span>) salient token indices <span class=\"m\">P<sub>i</sub>,P<sub>j</sub></span>. Let <span class=\"m\">D<sub>tok</sub>(P<sub>i</sub>,P<sub>j</sub>)=1−S<sub>tok</sub>(P<sub>i</sub>,P<sub>j</sub>)</span> denote the bidirectional late-interaction token divergence between <span class=\"m\">P<sub>i</sub></span> and <span class=\"m\">P<sub>j</sub></span>, <span class=\"m\">r<sub>j⟂i</sub>=v<sub>j</sub>−(v<sub>j</sub><sup>⊤</sup>v<sub>i</sub>)v<sub>i</sub></span> the orthogonal residual vector, and <span class=\"m\">δ<sub>fact</sub>(d<sub>i</sub>,d<sub>j</sub>)=<span class=\"frac\"><span>|F(d<sub>i</sub>)⊖F(d<sub>j</sub>)|</span><span>|F(d<sub>i</sub>)∪F(d<sub>j</sub>)|</span></span>∈[0,1]</span> the symmetric difference over canonicalized factual literals <span class=\"m\">F(d)</span> (which normalizes unit equivalences such as two weeks <span class=\"m\">↦</span> 14 days and written numerals three thousand <span class=\"m\">↦</span> 3000):"
+ ],
+ [
+  "BodyText",
+  "<div class=\"eq\">Ψ<sub>span</sub>&amp;=clip<sub>[0,1]</sub>(α<sub>1</sub>δ<sub>fact</sub>+α<sub>2</sub>D<sub>tok</sub>(P<sub>i</sub>,P<sub>j</sub>)(0.22+0.78δ<sub>fact</sub>)<br>&amp; +α<sub>3</sub>∥r<sub>j⟂i</sub>∥<sub>2</sub>δ<sub>fact</sub>)</div>"
+ ],
+ [
+  "FirstParagraph",
+  "with <span class=\"m\">α<sub>1</sub>=0.76,α<sub>2</sub>=1.40,α<sub>3</sub>=0.50</span>. The collision threshold <span class=\"m\">τ<sub>col</sub></span> is calibrated automatically on a domain-disjoint validation split via maximum <span class=\"m\">F<sub>1</sub></span>."
+ ],
+ [
+  "Heading2",
+  "4.1Collision Graph Pruning (CGP)"
+ ],
+ [
+  "FirstParagraph",
+  "Given the <span class=\"m\">k×k</span> matrix <span class=\"m\">M<sub>i,j</sub>=SCS<sup>*</sup>(d<sub>i</sub>,d<sub>j</sub>∣q)</span>, any pair with <span class=\"m\">M<sub>i,j</sub>≥τ<sub>col</sub></span> forms an active conflict edge in <span class=\"m\">G=(K<sub>q</sub>,E)</span>. Even when three versions (<span class=\"m\">v<sub>1</sub>,v<sub>2</sub>,v<sub>3</sub></span>) coexist in <span class=\"m\">K<sub>q</sub></span>, CGP prunes all shadowed historical nodes (<span class=\"m\">v<sub>1</sub></span> and <span class=\"m\">v<sub>2</sub></span>) via a two-tier hierarchy: <b>Tier 1 (Metadata Authority)</b> retains <span class=\"m\">argmax<sub>u∈{i,j}</sub>t(d<sub>u</sub>)</span> when timestamps exist; <b>Tier 2 (Zero-Metadata Fallback)</b> retains <span class=\"m\">argmax<sub>u∈{i,j}</sub>S<sub>sup</sub>(d<sub>u</sub>)</span> using intrinsic lexical supersession markers. Finally, pairs with <span class=\"m\">cos(v<sub>i</sub>,v<sub>j</sub>)&gt;0.91</span> and <span class=\"m\">M<sub>i,j</sub>&lt;0.5τ<sub>col</sub></span> are safely deduplicated as verified benign equivalents."
+ ],
+ [
+  "Heading1",
+  "5Experimental Setup"
+ ],
+ [
+  "CaptionedFigure",
+  "@@IMG@@"
+ ],
+ [
+  "ImageCaption",
+  "Comprehensive experimental results across <span class=\"m\">2,400</span> corpus chunks on an NVIDIA A100-SXM4-40GB GPU: <b>(a)</b> Empirical verification of Theorem 1 showing <span class=\"m\">O(1/L)</span> decay in pooled residuals vs. length-invariant <span class=\"m\">SCS<sup>*</sup></span>; <b>(b)</b> Zero-label score separation across multi-version collisions (<span class=\"m\">v<sub>3</sub></span> vs. <span class=\"m\">v<sub>2</sub></span>, <span class=\"m\">v<sub>3</sub></span> vs. <span class=\"m\">v<sub>1</sub></span>), unit-equivalent benign duplicates, and cross-clause distractors (<span class=\"m\">τ=0.235</span>); <b>(c)</b> Downstream RAG Freshness vs. Stale-Answer Rate (SAR) resolving the MMR Paradox; <b>(d)</b> SAR breakdown across 5 adversarial difficulty regimes; <b>(e)</b> Threshold stability across 3 retriever backbones (BGE-base, E5-base, MiniLM-L6); and <b>(f)</b> Log-scale Latency vs. Accuracy Pareto frontier."
+ ],
+ [
+  "BodyText",
+  "<b>Multi-Version Adversarial Benchmark.</b> We construct an enterprise drift benchmark of <span class=\"m\">480</span> scenarios (<span class=\"m\">2,400</span> total indexed chunks across FAISS inner-product and BM25 indices, yielding <span class=\"m\">1,920</span> pairwise evaluations per backbone, or <span class=\"m\">5,760</span> total neural pair evaluations). Every scenario contains five competing chunks: latest version <span class=\"m\">R<sub>v3</sub></span> (2026), stale version <span class=\"m\">O<sub>v2</sub></span> (2025), ancient version <span class=\"m\">O<sub>v1</sub></span> (2023), a benign duplicate <span class=\"m\">R<sub>dup</sub></span>, and a cross-clause hard distractor <span class=\"m\">D<sub>hard</sub></span> that embeds the stale numeral/entity from <span class=\"m\">v<sub>2</sub></span> inside an unrelated policy clause. We enforce a strict <b>Domain-Disjoint Split</b>: <span class=\"m\">40%</span> Train (Domains 0–3), <span class=\"m\">20%</span> Validation (Domains 4–5, used to auto-calibrate <span class=\"m\">τ<sub>col</sub></span>), and <span class=\"m\">40%</span> Unseen Test (Domains 6–9: <span class=\"m\">192</span> unseen scenarios, <span class=\"m\">768</span> test pairs). Furthermore, scenarios span five document length buckets (<span class=\"m\">50</span> to <span class=\"m\">340</span> words) and five adversarial regimes: <i>Standard_Edit</i>, <i>Unit_Equiv_Hard</i> (e.g., 14 calendar days vs. two full weeks), <i>MultiHop_Chain</i> (<span class=\"m\">v<sub>1</sub>,v<sub>2</sub>,v<sub>3</sub></span> co-retrieved), <i>CrossClause_Trap</i>, and <i>Noisy_OCR</i>."
+ ],
+ [
+  "BodyText",
+  "<b>Retriever Backbones &amp; Live LLM Audit.</b> We evaluate three dense retriever backbones: BAAI/bge-base-en-v1.5 (<span class=\"m\">768</span>-d), intfloat/e5-base-v2 (<span class=\"m\">768</span>-d), and sentence-transformers/all-MiniLM-L6-v2 (<span class=\"m\">384</span>-d), alongside cross-encoder/nli-deberta-v3-small and Qwen/Qwen2.5-1.5B-Instruct (FP16) for live autoregressive RAG generation on an NVIDIA A100-SXM4-40GB GPU."
+ ],
+ [
+  "Heading1",
+  "6Empirical Results &amp; Analysis"
+ ],
+ [
+  "Heading2",
+  "6.1Main Quantitative Findings"
+ ],
+ [
+  "FirstParagraph",
+  "Figure 1 and Tables [tab:main_results]–[tab:live_llm] summarize our findings:"
+ ],
+ [
+  "Normal",
+  "<b>Multi-Backbone Generalization &amp; Pooling Dilution:</b> As shown in Table [tab:main_results] and Figure 1(a,b), global cosine divergence fails completely (<span class=\"m\">AUROC=0.2126</span>), and the supervised Pooled-MLP (<i>ConflictRAG</i> Stage-1) degrades to <span class=\"m\">0.7555</span> AUROC (<span class=\"m\">15.1%</span>–<span class=\"m\">28.6%</span> SAR across backbones), especially on Unit_Equiv_Hard (<span class=\"m\">23.7%</span> SAR), where paraphrasing variance exceeds the <span class=\"m\">O(1/L)</span>-diluted factual edit. In contrast, using thresholds calibrated solely on the validation split (<span class=\"m\">τ<sub>col</sub>∈{0.235,0.150,0.195}</span>), <span class=\"m\">SCS<sup>*</sup></span> achieves <b>1.000 AUROC on</b><b> </b><b>BGE-base</b>, <b>0.989 AUROC on</b><b> </b><b>E5-base</b>, and <b>0.966 AUROC on</b><b> </b><b>MiniLM-L6</b>."
+ ],
+ [
+  "Normal",
+  "<b>Why</b><b> </b><span class=\"m\">SCS<sup>*</sup></span><b> </b><b>Outperforms DeBERTa-v3 NLI on End-to-End RAG (</b><span class=\"m\">96.9%</span><b> </b><b>vs. </b><span class=\"m\">60.9%</span><b> </b><b>Fresh Accuracy):</b> While nli-deberta-v3-small achieves <span class=\"m\">0.9639</span> pairwise AUROC, it lacks our topical Frame Equivalence Gate (<span class=\"m\">Φ<sub>frame</sub></span>). When a CrossClause_Trap distractor co-occurs in top-<span class=\"m\">5</span>, DeBERTa flags spurious contradictions between unrelated clauses and erroneously prunes valid passages, leaving <span class=\"m\">35.9%</span> of answers stale while requiring <span class=\"m\">161.59 ms</span> per query (<span class=\"m\">3.6×</span> slower than <span class=\"m\">SCS<sup>*</sup></span> at <span class=\"m\">45.01 ms</span> for all <span class=\"m\">10</span> pairs)."
+ ],
+ [
+  "Normal",
+  "<b>Empirical Proof of the MMR Diversity Paradox (Including Live LLM Decoding):</b> Across all three retriever backbones (Table [tab:regime_breakdown]), enabling MMR increases Stale-Answer Rates—from <span class=\"m\">69.8%→71.9%</span> on BGE-base, <span class=\"m\">68.2%→81.2%</span> on E5-base, and <span class=\"m\">74.5%→85.4%</span> on MiniLM-L6. In our live generation audit with Qwen2.5-1.5B-Instruct (Table [tab:live_llm]), MMR drops fresh accuracy from <span class=\"m\">43.8%</span> to <span class=\"m\">36.2%</span> and raises live SAR from <span class=\"m\">56.2%</span> to <span class=\"m\">62.5%</span>. Applying <span class=\"m\">SCS<sup>*</sup>+CGP</span> resolves multi-version chains (<span class=\"m\">v<sub>1</sub>,v<sub>2</sub>,v<sub>3</sub></span>) prior to generation, achieving <b>97.5% Live Fresh Accuracy</b> and <b>0.0% SAR</b>."
+ ],
+ [
+  "Heading1",
+  "7Conclusion"
+ ],
+ [
+  "FirstParagraph",
+  "We have established theoretically and empirically why evolving knowledge bases break standard RAG pipelines: localized factual edits undergo <span class=\"m\">O(1/L)</span> pooling dilution, creating tight retrieval score ties that induce generator position bias and cause MMR diversity filters to discard updated evidence. Operating directly on unpooled retriever hidden states, our training-free <b>Stale Collision Score (</b><span class=\"m\">SCS<sup>*</sup></span><b>)</b> and <b>Collision Graph Pruning (CGP)</b> accurately isolate and resolve multi-version collisions across diverse embedding backbones with zero labels and zero LLM overhead."
+ ],
+ [
+  "BodyText",
+  "99"
+ ],
+ [
+  "BodyText",
+  "Akari Asai, Zeqiu Wu, Yizhong Wang, Avirup Sil, and Hannaneh Hajishirzi. 2024. Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection. In <i>International Conference on Learning Representations (ICLR)</i>."
+ ],
+ [
+  "BodyText",
+  "Jaime Carbonell and Jade Goldstein. 1998. The Use of MMR, Diversity-Based Reranking for Reordering Documents and Producing Summaries. In <i>Proceedings of the 21st Annual International ACM SIGIR Conference</i>, pages 335–336."
+ ],
+ [
+  "BodyText",
+  "Wenhu Chen, Xinyi Wang, and William Yang Wang. 2021. A Dataset for Answering Time-Sensitive Questions. In <i>Proceedings of NeurIPS Datasets and Benchmarks</i>."
+ ],
+ [
+  "BodyText",
+  "Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, and Douwe Kiela. 2020. Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. In <i>Advances in Neural Information Processing Systems (NeurIPS)</i>, volume 33, pages 9459–9474."
+ ],
+ [
+  "BodyText",
+  "Y. Liu et al. 2025. Micro-Act: Detecting and Resolving Knowledge Conflicts via Internal Activation Probing. In <i>Proceedings of ACL 2025</i>."
+ ],
+ [
+  "BodyText",
+  "Jie Ouyang, Tingyue Pan, Mingyue Cheng, Ruiran Yan, Yucong Luo, Jiaying Lin, and Qi Liu. 2025. HoH: A Dynamic Benchmark for Evaluating the Impact of Outdated Information on Retrieval-Augmented Generation. In <i>Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (ACL 2025)</i>, pages 6036–6063."
+ ],
+ [
+  "BodyText",
+  "S. Prajapati. 2026. LiveVectorLake: Lineage-Aware Hot/Cold Tiering for Dynamic Vector Databases. <i>arXiv preprint arXiv:2601.05270</i>."
+ ],
+ [
+  "BodyText",
+  "K. Singh. 2026. StaleBench: A Benchmark for Answer Freshness in Retrieval-Augmented Generation (v0.2.0). <i>Zenodo</i>, DOI: 10.5281/zenodo.20697152."
+ ],
+ [
+  "BodyText",
+  "Evaluating Temporal Drift in Retrieval Benchmarks. 2026. Still Fresh? Evaluating Temporal Drift in Retrieval Benchmarks (DriftBench / FreshStack). <i>arXiv preprint</i>, March 2026."
+ ],
+ [
+  "BodyText",
+  "Nikolaos D. Tantaroudas, Ioannis Karachalios, and James Andrew. 2026. After the Edit: Freshness and Access Control of Tool-Calling Retrieval and Vector RAG for a Community-Edited Knowledge Base. <i>Preprints.org</i>, 202610.0645.v1."
+ ],
+ [
+  "BodyText",
+  "C. Wang et al. 2026. ConflictRAG: Detecting and Resolving Knowledge Conflicts in Retrieval Augmented Generation. <i>arXiv preprint arXiv:2605.17301</i>."
+ ],
+ [
+  "BodyText",
+  "Rongwu Xu, Zehan Qi, Zhijiang Guo, Cunxiang Wang, Hongru Wang, Yue Zhang, and Wei Xu. 2024. Knowledge Conflicts for LLMs: A Survey. In <i>Proceedings of EMNLP 2024</i>."
+ ],
+ [
+  "BodyText",
+  "Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, and Zhen-Hua Ling. 2024. Corrective Retrieval Augmented Generation. <i>arXiv preprint arXiv:2401.15884</i>."
+ ],
+ [
+  "BodyText",
+  "Michael J.Q. Zhang and Eunsol Choi. 2021. SituatedQA: Incorporating Extra-Linguistic Contexts into QA. In <i>Proceedings of EMNLP 2021</i>."
+ ]
+]

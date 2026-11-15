@@ -13,7 +13,7 @@ When a corpus contains several versions of the same document, dense retrievers r
 ## Contributions
 1. **Pooling dilution bound.** For mean pooling, a single-token change moves the unit-normalised embedding by at most `Δ²/(2L²)` in cosine distance (symbolic check: `src/formal_math_verification.py`).
 2. **MMR observation.** In our setup, MMR re-ranking *raised* the stale-answer rate (31.8% → 47.9%).
-3. **SCS\*.** A zero-label pruner: pairwise similarity × length parity, plus a causal timestamp mask, vectorised on GPU.
+3. **SCS\* + CGP.** A training-free, zero-label detector on unpooled token states (rank-tie density × frame equivalence × query-conditioned span divergence) with Collision Graph Pruning (`src/scs_rigorous_benchmark.py`). `scs_pruner_pkg/` and `src/scs_pytorch_tensor.py` are a lightweight embedding-level approximation for drop-in use.
 
 ## Results (as measured)
 
@@ -50,7 +50,7 @@ LangChain (`LangChainSCSCompressor`) and LlamaIndex (`LlamaIndexSCSPostprocessor
 
 ## Layout
 ```
-artifacts/   paper sources (.tex/.docx/.pdf), figure, raw JSON results
+artifacts/   paper (.pdf, .docx source), figure, raw JSON results
 src/         SCS* module, benchmarks, stress harness, math verification
 scs_pruner_pkg/   pip-installable package
 hf_spaces_demo/   Gradio demo
