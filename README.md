@@ -15,7 +15,7 @@ When a corpus contains several versions of the same document, dense retrievers r
 2. **MMR observation.** In our setup, MMR re-ranking *raised* the stale-answer rate (31.8% → 47.9%).
 3. **SCS\* + CGP.** A training-free, zero-label detector on unpooled token states (rank-tie density × frame equivalence × query-conditioned span divergence) with Collision Graph Pruning (`src/scs_rigorous_benchmark.py`). `scs_pruner_pkg/` and `src/scs_pytorch_tensor.py` are a lightweight embedding-level approximation for drop-in use.
 
-## Results (as measured)
+## Results (independent audited reproduction; the paper gives the original A100 numbers and the regex-leakage audit in Appendix A)
 
 | Method | Run 1 fresh / stale (%) | Run 2 fresh / stale (%) |
 |---|---|---|
