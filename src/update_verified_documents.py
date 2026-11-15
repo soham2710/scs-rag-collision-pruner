@@ -142,14 +142,17 @@ def create_document():
         p.paragraph_format.space_after = Pt(4)
         p.runs[0].font.size = Pt(10)
 
+    doc.add_heading("6. Limitations", level=1)
+    doc.add_paragraph("Run 1 reports zero standard deviation across seeds, so folds are not statistically independent and no significance test is claimed. Run 2 uses 4 hand-written scenarios with synthetic embeddings (injected stale/fresh similarity) and validates the pruning mechanism rather than end-to-end retrieval. Only a 1.5B generator was used; public conflict benchmarks and larger models are future work.")
+
     # Save Word Document
-    doc_path = "/mnt/ai_vault/projects/scs-multi-gpu-research/artifacts/Shadowed_in_Vector_Space_Verified.docx"
+    doc_path = "/mnt/ai_vault/projects/scs-multi-gpu-research/artifacts/Shadowed_in_Vector_Space.docx"
     doc.save(doc_path)
     print(f"Successfully saved updated document to: {doc_path}")
 
     # Copy to Obsidian Vault and D Drive
     import shutil
-    shutil.copy(doc_path, "/run/media/soham/D Drive/botmartz/botmartz-engine/docs/obsidian-vault/05-LLM-Wiki-SCS-Research/Shadowed_in_Vector_Space_Verified.docx")
+    shutil.copy(doc_path, "/run/media/soham/D Drive/botmartz/botmartz-engine/docs/obsidian-vault/05-LLM-Wiki-SCS-Research/Shadowed_in_Vector_Space.docx")
     print("Copied updated DOCX to Obsidian Vault.")
 
 if __name__ == "__main__":
