@@ -19,7 +19,7 @@ print("Time-Aware HoH RAG:")
 print(f"  Fresh Acc: {run1['time_aware_hoh_rag']['fresh_acc_mean']:.2f}% +- {run1['time_aware_hoh_rag']['fresh_acc_std']:.2f}%")
 print(f"  Stale Rate: {run1['time_aware_hoh_rag']['stale_rate_mean']:.2f}% +- {run1['time_aware_hoh_rag']['stale_rate_std']:.2f}%")
 
-print("SCS*-v2 RAG (Run 1):")
+print("SCS* RAG (Run 1):")
 print(f"  Fresh Acc: {run1['scs_v2_rag']['fresh_acc_mean']:.2f}% +- {run1['scs_v2_rag']['fresh_acc_std']:.2f}%")
 print(f"  Stale Rate: {run1['scs_v2_rag']['stale_rate_mean']:.2f}% +- {run1['scs_v2_rag']['stale_rate_std']:.2f}%")
 

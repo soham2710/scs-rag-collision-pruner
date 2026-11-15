@@ -148,11 +148,11 @@ def __(Path, json, mo):
             
         leakage_rows = [
             {"Ablation Stage": "Original Method (With Test-Domain Regex Leakage)", "Collision AUROC": f"{data['auroc_original_with_leakage']:.4f}", "Optimal F1": f"{data['f1_original_with_leakage']:.4f}", "Integrity Status": "❌ Flawed (Domain Overlap)"},
-            {"Ablation Stage": "SCS-v2 Ours (Zero Regex Leakage, Multi-GPU)", "Collision AUROC": f"{data['auroc_scs_v2_zero_leakage']:.4f}", "Optimal F1": f"{data['f1_scs_v2_zero_leakage']:.4f}", "Integrity Status": "✅ Rigorous & Audited"}
+            {"Ablation Stage": "SCS Ours (Zero Regex Leakage, Multi-GPU)", "Collision AUROC": f"{data['auroc_scs_v2_zero_leakage']:.4f}", "Optimal F1": f"{data['f1_scs_v2_zero_leakage']:.4f}", "Integrity Status": "✅ Rigorous & Audited"}
         ]
         
         content = mo.vstack([
-            mo.md("## 🔬 Audited Research Benchmark: Forensic Audit vs. SCS-v2"),
+            mo.md("## 🔬 Audited Research Benchmark: Forensic Audit vs. SCS"),
             mo.md("### Table 1: Leakage Ablation Proof (Test-Domain Regexes Removed)"),
             mo.ui.table(leakage_rows),
             mo.md("### Table 2: Live LLM RAG Generation Audit (192 Held-Out Scenarios, 1,000 Bootstrap 95% CIs)"),

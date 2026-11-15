@@ -128,7 +128,7 @@ def create_document():
     tasks = [
         "1. Environment & Dual-GPU Provisioning: Configured dual NVIDIA RTX 5080 GPUs (32GB VRAM, CUDA 12.8) in /mnt/ai_vault/envs/ai-env with PyTorch 2.11 and Transformers 5.23.",
         "2. Speculative Decoding Architecture: Developed vllm_multigpu_speculative.py implementing PagedAttention KV manager, BLAKE2b Automatic Prefix Caching (APC), and Prompt-Lookup Speculative Decoding (139.79 tok/s, 1.08x speedup).",
-        "3. Research.ipynb Audit & Flaw Identification: Audited D Drive downloads, identified hardcoded regex domain leakage that artificially inflated baseline AUROC to 1.000, and engineered zero-leakage SCS*-v2.",
+        "3. Research.ipynb Audit & Flaw Identification: Audited D Drive downloads, identified hardcoded regex domain leakage that artificially inflated baseline AUROC to 1.000, and engineered zero-leakage SCS*.",
         "4. 10-Fold Empirical Multi-Seed Verification (Run 1): Executed 10 cross-seed iterations across 1,920 queries, mathematically proving the MMR Diversity Paradox (+16.1% staleness inflation).",
         "5. Karpathy LLM Council & Continuous Synthesis: Executed 3-stage council deliberation (Fan-Out -> Review -> Chairman Synthesis), producing 8-page LLM Wiki and syncing with Obsidian Vault.",
         "6. High-Resolution Visualizations: Generated 300 DPI 8-panel publication graphic (scs_multigpu_8panel.png) covering ROC curves, MMR staleness inflation, pooling bounds, and latency comparisons.",
@@ -143,13 +143,13 @@ def create_document():
         p.runs[0].font.size = Pt(10)
 
     # Save Word Document
-    doc_path = "/mnt/ai_vault/projects/scs-multi-gpu-research/artifacts/Shadowed_in_Vector_Space_v2_Verified.docx"
+    doc_path = "/mnt/ai_vault/projects/scs-multi-gpu-research/artifacts/Shadowed_in_Vector_Space_Verified.docx"
     doc.save(doc_path)
     print(f"Successfully saved updated document to: {doc_path}")
 
     # Copy to Obsidian Vault and D Drive
     import shutil
-    shutil.copy(doc_path, "/run/media/soham/D Drive/botmartz/botmartz-engine/docs/obsidian-vault/05-LLM-Wiki-SCS-Research/Shadowed_in_Vector_Space_v2_Verified.docx")
+    shutil.copy(doc_path, "/run/media/soham/D Drive/botmartz/botmartz-engine/docs/obsidian-vault/05-LLM-Wiki-SCS-Research/Shadowed_in_Vector_Space_Verified.docx")
     print("Copied updated DOCX to Obsidian Vault.")
 
 if __name__ == "__main__":

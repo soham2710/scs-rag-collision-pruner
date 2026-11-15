@@ -1,5 +1,5 @@
 """
-Comprehensive 10-Fold Cross-Seed Verification Engine for SCS-v2.
+Comprehensive 10-Fold Cross-Seed Verification Engine for SCS.
 
 Executes 10 complete, independent runs across distinct random seeds (seeds 101 to 110)
 and evaluates:
@@ -182,7 +182,7 @@ def run_10x_comprehensive_suite(num_folds: int = 10):
             mmr_fresh.append(1.0 if (cur_f in ans_mmr and stale_v2_f not in ans_mmr) else 0.0)
             mmr_stale.append(1.0 if (stale_v2_f in ans_mmr or stale_v1_f in ans_mmr) else 0.0)
             
-            # SCS-v2
+            # SCS
             t0 = time.perf_counter()
             k = min(4, len(ranked_chunks))
             top_k_chunks = ranked_chunks[:k]
@@ -245,20 +245,20 @@ def run_10x_comprehensive_suite(num_folds: int = 10):
     print(f"{'Metric / Pipeline':<30} | {'Mean ± Std':<18} | {'95% CI':<16} | {'[Min, Max]':<15}")
     print("-" * 88)
     print(f"{'AUROC (Original Leaky)':<30} | {stat_summary['auroc_leaky']['mean']:.4f} ± {stat_summary['auroc_leaky']['std']:.4f} | ± {stat_summary['auroc_leaky']['ci95']:.4f}     | [{stat_summary['auroc_leaky']['min']:.4f}, {stat_summary['auroc_leaky']['max']:.4f}]")
-    print(f"{'AUROC (SCS-v2 Zero-Leakage)':<30} | {stat_summary['auroc_zero_leakage']['mean']:.4f} ± {stat_summary['auroc_zero_leakage']['std']:.4f} | ± {stat_summary['auroc_zero_leakage']['ci95']:.4f}     | [{stat_summary['auroc_zero_leakage']['min']:.4f}, {stat_summary['auroc_zero_leakage']['max']:.4f}]")
+    print(f"{'AUROC (SCS Zero-Leakage)':<30} | {stat_summary['auroc_zero_leakage']['mean']:.4f} ± {stat_summary['auroc_zero_leakage']['std']:.4f} | ± {stat_summary['auroc_zero_leakage']['ci95']:.4f}     | [{stat_summary['auroc_zero_leakage']['min']:.4f}, {stat_summary['auroc_zero_leakage']['max']:.4f}]")
     print("-" * 88)
     print(f"{'Vanilla Fresh Accuracy (%)':<30} | {stat_summary['Vanilla_Dense_fresh']['mean']:.1f} ± {stat_summary['Vanilla_Dense_fresh']['std']:.1f}%    | ± {stat_summary['Vanilla_Dense_fresh']['ci95']:.1f}%       | [{stat_summary['Vanilla_Dense_fresh']['min']:.1f}%, {stat_summary['Vanilla_Dense_fresh']['max']:.1f}%]")
     print(f"{'Vanilla Stale Answer Rate (%)':<30} | {stat_summary['Vanilla_Dense_stale']['mean']:.1f} ± {stat_summary['Vanilla_Dense_stale']['std']:.1f}%    | ± {stat_summary['Vanilla_Dense_stale']['ci95']:.1f}%       | [{stat_summary['Vanilla_Dense_stale']['min']:.1f}%, {stat_summary['Vanilla_Dense_stale']['max']:.1f}%]")
     print(f"{'MMR Stale Answer Rate (%)':<30} | {stat_summary['MMR_Diversity_stale']['mean']:.1f} ± {stat_summary['MMR_Diversity_stale']['std']:.1f}%    | ± {stat_summary['MMR_Diversity_stale']['ci95']:.1f}%       | [{stat_summary['MMR_Diversity_stale']['min']:.1f}%, {stat_summary['MMR_Diversity_stale']['max']:.1f}%]")
-    print(f"{'SCS-v2 Fresh Accuracy (%)':<30} | {stat_summary['SCS_v2_fresh']['mean']:.1f} ± {stat_summary['SCS_v2_fresh']['std']:.1f}%    | ± {stat_summary['SCS_v2_fresh']['ci95']:.1f}%       | [{stat_summary['SCS_v2_fresh']['min']:.1f}%, {stat_summary['SCS_v2_fresh']['max']:.1f}%]")
-    print(f"{'SCS-v2 Stale Answer Rate (%)':<30} | {stat_summary['SCS_v2_stale']['mean']:.1f} ± {stat_summary['SCS_v2_stale']['std']:.1f}%    | ± {stat_summary['SCS_v2_stale']['ci95']:.1f}%       | [{stat_summary['SCS_v2_stale']['min']:.1f}%, {stat_summary['SCS_v2_stale']['max']:.1f}%]")
+    print(f"{'SCS Fresh Accuracy (%)':<30} | {stat_summary['SCS_v2_fresh']['mean']:.1f} ± {stat_summary['SCS_v2_fresh']['std']:.1f}%    | ± {stat_summary['SCS_v2_fresh']['ci95']:.1f}%       | [{stat_summary['SCS_v2_fresh']['min']:.1f}%, {stat_summary['SCS_v2_fresh']['max']:.1f}%]")
+    print(f"{'SCS Stale Answer Rate (%)':<30} | {stat_summary['SCS_v2_stale']['mean']:.1f} ± {stat_summary['SCS_v2_stale']['std']:.1f}%    | ± {stat_summary['SCS_v2_stale']['ci95']:.1f}%       | [{stat_summary['SCS_v2_stale']['min']:.1f}%, {stat_summary['SCS_v2_stale']['max']:.1f}%]")
     print("-" * 88)
 
     # Statistical significance across all 10 folds
     w_van_p = stats.wilcoxon(fold_results["SCS_v2_fresh"], fold_results["Vanilla_Dense_fresh"]).pvalue
     w_mmr_p = stats.wilcoxon(fold_results["SCS_v2_fresh"], fold_results["MMR_Diversity_fresh"]).pvalue
-    print(f"\n10-Fold Wilcoxon Test SCS-v2 vs Vanilla: p-value = {w_van_p:.4e} (Consistently Significant across all 10 folds)")
-    print(f"10-Fold Wilcoxon Test SCS-v2 vs MMR:     p-value = {w_mmr_p:.4e} (Consistently Significant across all 10 folds)")
+    print(f"\n10-Fold Wilcoxon Test SCS vs Vanilla: p-value = {w_van_p:.4e} (Consistently Significant across all 10 folds)")
+    print(f"10-Fold Wilcoxon Test SCS vs MMR:     p-value = {w_mmr_p:.4e} (Consistently Significant across all 10 folds)")
 
     # Save to verified metrics JSON
     out_10x_file = ARTIFACTS_DIR / "ten_fold_empirical_results.json"

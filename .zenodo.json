@@ -1,0 +1,11 @@
+{
+  "title": "Shadowed in Vector Space: Zero-Label Detection and Resolution of Stale Version Collisions in Retrieval-Augmented Generation",
+  "upload_type": "publication",
+  "publication_type": "preprint",
+  "description": "We formalize the Stale Version Collision problem in RAG, show a pooling dilution bound for mean-pooled embeddings, report that MMR re-ranking increased stale-answer rate in our setup, and present SCS*, a zero-label PyTorch pruner. Code, data logs and PDF included.",
+  "creators": [{"name": "Sharma, Soham", "affiliation": "Botmartz AI Solutions Pvt Ltd"}],
+  "license": "MIT",
+  "version": "1.0.0",
+  "keywords": ["retrieval-augmented generation", "RAG", "stale documents", "knowledge conflict", "PyTorch"],
+  "related_identifiers": [{"relation": "isSupplementTo", "identifier": "https://github.com/soham2710/scs-rag-collision-pruner", "scheme": "url"}]
+}

@@ -1,4 +1,4 @@
-# SCS-v2 Zero-Leakage Multi-GPU Architecture
+# SCS Zero-Leakage Multi-GPU Architecture
 
 ## Dual-GPU Hardware Topology
 - **cuda:0 (NVIDIA RTX 5080 #1)**:

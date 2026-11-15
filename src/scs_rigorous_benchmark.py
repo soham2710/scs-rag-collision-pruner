@@ -1,5 +1,5 @@
 """
-Rigorous SCS Benchmark Engine (SCS-v2) for Multi-GPU RAG Research.
+Rigorous SCS Benchmark Engine (SCS) for Multi-GPU RAG Research.
 
 Addresses the 4 critical flaws identified in the original Research.ipynb:
 1. Replaces hardcoded test-domain regexes with:
@@ -123,7 +123,7 @@ class LocaleNeutralNormalizer:
 
 class MultiGPUSCSv2Detector:
     """
-    SCS-v2 Multi-GPU Zero-Leakage Collision Detector.
+    SCS Multi-GPU Zero-Leakage Collision Detector.
     Uses:
     - cuda:0: Target Embedding Model (BAAI-bge-m3 or bge-base-en-v1.5)
     - cuda:1: Cross-Encoder Verifier & Calibration (BAAI-bge-reranker-v2-m3)
@@ -138,11 +138,11 @@ class MultiGPUSCSv2Detector:
         self.device_embed = torch.device(device_embed if torch.cuda.is_available() else "cpu")
         self.device_rerank = torch.device(device_rerank if torch.cuda.device_count() > 1 else "cpu")
         
-        print(f"[SCS-v2] Loading Embedding Backbone on {self.device_embed}...")
+        print(f"[SCS] Loading Embedding Backbone on {self.device_embed}...")
         self.tokenizer = AutoTokenizer.from_pretrained(embed_model_name)
         self.embed_model = AutoModel.from_pretrained(embed_model_name).to(self.device_embed).eval()
         
-        print(f"[SCS-v2] Loading Cross-Encoder Verifier on {self.device_rerank}...")
+        print(f"[SCS] Loading Cross-Encoder Verifier on {self.device_rerank}...")
         self.rerank_tokenizer = AutoTokenizer.from_pretrained(rerank_model_name)
         self.rerank_model = AutoModelForSequenceClassification.from_pretrained(rerank_model_name).to(self.device_rerank).eval()
         
@@ -237,7 +237,7 @@ class MultiGPUSCSv2Detector:
             rr_logit = self.rerank_model(**rr_inputs).logits.item()
             rr_prob = 1.0 / (1.0 + math.exp(-rr_logit))
             
-            # Formulate SCS-v2: high global proximity + high token divergence + divergent facts
+            # Formulate SCS: high global proximity + high token divergence + divergent facts
             scs_score = 0.40 * cos_global + 0.35 * psi_diverge + 0.25 * fact_diverge
             return float(scs_score)
 
@@ -393,7 +393,7 @@ def run_rigorous_scientific_benchmark():
     
     print("\n--------------------------------------------------------------------------------")
     print(f"AUDIT PROOF 1: Original Leaky Method AUROC: {auroc_leak:.4f}, Optimal F1: {f1_leak:.4f}")
-    print(f"AUDIT PROOF 2: Zero-Leakage SCS-v2 AUROC:   {auroc_zero:.4f}, Optimal F1: {f1_zero:.4f}")
+    print(f"AUDIT PROOF 2: Zero-Leakage SCS AUROC:   {auroc_zero:.4f}, Optimal F1: {f1_zero:.4f}")
     print("--------------------------------------------------------------------------------")
     
     # Live Dual-GPU LLM RAG Benchmark
@@ -410,7 +410,7 @@ def run_rigorous_scientific_benchmark():
     # 1. Vanilla Dense RAG (Top-5 with Dense similarity order, where stale chunks often outrank fresh)
     # 2. Time-Aware Freshness Prior RAG (Prompt instruction)
     # 3. MMR Diversity RAG (Forces diversity among top passages)
-    # 4. SCS-v2 Zero-Leakage Collision Pruned RAG (Ours)
+    # 4. SCS Zero-Leakage Collision Pruned RAG (Ours)
     
     results = {
         "Vanilla_Dense": {"fresh": [], "stale": [], "lat_ms": []},
@@ -489,7 +489,7 @@ def run_rigorous_scientific_benchmark():
         results["MMR_Diversity"]["stale"].append(is_stale_m)
         results["MMR_Diversity"]["lat_ms"].append(lat_mmr)
         
-        # --- Pipeline 4: SCS-v2 Zero-Leakage Collision Pruned RAG (Ours) ---
+        # --- Pipeline 4: SCS Zero-Leakage Collision Pruned RAG (Ours) ---
         t0 = time.perf_counter()
         k = min(4, len(ranked_chunks))
         top_k_chunks = ranked_chunks[:k]
@@ -557,11 +557,11 @@ def run_rigorous_scientific_benchmark():
         }
         print(f"{p_name:<22} | {f_m:.1f} ± {f_ci:.1f}%      | {s_m:.1f} ± {s_ci:.1f}%      | {lat:.2f} ms")
         
-    # Wilcoxon signed-rank test comparing SCS-v2 vs Vanilla and MMR
+    # Wilcoxon signed-rank test comparing SCS vs Vanilla and MMR
     stat_v, p_val_v = stats.wilcoxon(results["SCS_v2_Ours"]["fresh"], results["Vanilla_Dense"]["fresh"])
     stat_m, p_val_m = stats.wilcoxon(results["SCS_v2_Ours"]["fresh"], results["MMR_Diversity"]["fresh"])
-    print(f"\nWilcoxon Test SCS-v2 vs Vanilla Dense: p-value = {p_val_v:.4e} (Significant: {p_val_v < 0.01})")
-    print(f"Wilcoxon Test SCS-v2 vs MMR Diversity: p-value = {p_val_m:.4e} (Significant: {p_val_m < 0.01})")
+    print(f"\nWilcoxon Test SCS vs Vanilla Dense: p-value = {p_val_v:.4e} (Significant: {p_val_v < 0.01})")
+    print(f"Wilcoxon Test SCS vs MMR Diversity: p-value = {p_val_m:.4e} (Significant: {p_val_m < 0.01})")
     
     # Save verified metrics
     out_path = Path("/mnt/ai_vault/projects/scs-multi-gpu-research/artifacts/experiment_verified_metrics.json")

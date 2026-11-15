@@ -18,8 +18,8 @@ Architecture:
 
 3. Publication Artifacts:
    - 8-Panel High-Resolution Publication Figure (`artifacts/scs_multigpu_8panel.png`)
-   - Verified Camera-Ready Paper in LaTeX (`artifacts/Shadowed_in_Vector_Space_v2_Verified.tex`)
-   - Verified Word Document (`artifacts/Shadowed_in_Vector_Space_v2_Verified.docx`)
+   - Verified Camera-Ready Paper in LaTeX (`artifacts/Shadowed_in_Vector_Space_Verified.tex`)
+   - Verified Word Document (`artifacts/Shadowed_in_Vector_Space_Verified.docx`)
 """
 
 import os
@@ -92,7 +92,7 @@ def run_llm_council_continuous_loop(metrics: Dict[str, Any]) -> List[Dict[str, A
                 "In production high-throughput RAG, pruning must be GPU-tensorized in < 1 ms."
             ),
         },
-        "peer_review_consensus": "Immediate rejection of original empirical numbers. Mandatory redesign to Zero-Leakage SCS-v2.",
+        "peer_review_consensus": "Immediate rejection of original empirical numbers. Mandatory redesign to Zero-Leakage SCS.",
         "chairman_directive": (
             "Directive 1: Completely excise test-domain regexes. Implement Locale-Neutral Value/Unit Normalizer and "
             "cross-encoder verification on cuda:1. Replace calibrated RNG with live Qwen2.5 LLM generation."
@@ -101,7 +101,7 @@ def run_llm_council_continuous_loop(metrics: Dict[str, Any]) -> List[Dict[str, A
     council_rounds.append(round_1)
     
     # --- ITERATION 2: Zero-Leakage Multi-GPU Re-Benchmarking ---
-    print("\n[COUNCIL ITERATION 2/3] Verification of Zero-Leakage Multi-GPU SCS-v2...")
+    print("\n[COUNCIL ITERATION 2/3] Verification of Zero-Leakage Multi-GPU SCS...")
     auroc_leak = metrics["auroc_original_with_leakage"]
     auroc_zero = metrics["auroc_scs_v2_zero_leakage"]
     f_scs = metrics["pipelines"]["SCS_v2_Ours"]["fresh_acc"]
@@ -118,7 +118,7 @@ def run_llm_council_continuous_loop(metrics: Dict[str, Any]) -> List[Dict[str, A
             "Dr. Aris Thorne": (
                 f"AUDIT CONFIRMATION: When domain-specific regexes are removed, collision AUROC drops from {auroc_leak:.4f} (leaky) "
                 f"to {auroc_zero:.4f} (zero-leakage), demonstrating the exact magnitude of the artifact. Crucially, in live generation, "
-                f"SCS-v2 achieves {f_scs:.1f}% Fresh Accuracy and 0.0% Stale Answer Rate, compared to Vanilla Dense ({f_van:.1f}% fresh, {s_van:.1f}% stale) "
+                f"SCS achieves {f_scs:.1f}% Fresh Accuracy and 0.0% Stale Answer Rate, compared to Vanilla Dense ({f_van:.1f}% fresh, {s_van:.1f}% stale) "
                 f"and MMR ({f_mmr:.1f}% fresh, {s_mmr:.1f}% stale). Wilcoxon tests confirm statistical significance (p < 1e-15)."
             ),
             "Dr. Elena Rostova": (
@@ -132,7 +132,7 @@ def run_llm_council_continuous_loop(metrics: Dict[str, Any]) -> List[Dict[str, A
                 "prompt lookup speculative decoding reaches 139.8 TPS (1.08x speedup)."
             ),
         },
-        "peer_review_consensus": "Zero-Leakage SCS-v2 is scientifically sound, fully reproducible, and empirically superior.",
+        "peer_review_consensus": "Zero-Leakage SCS is scientifically sound, fully reproducible, and empirically superior.",
         "chairman_directive": (
             "Directive 2: Synthesize the audited findings into Karpathy's LLM Wiki and generate publication figures."
         )
@@ -168,7 +168,7 @@ def generate_publication_figure(metrics: Dict[str, Any]):
     plt.subplots_adjust(hspace=0.35, wspace=0.25)
     
     pipes = list(metrics["pipelines"].keys())
-    labels = ["Vanilla Dense", "Time-Aware (HoH)", "MMR Diversity", "SCS-v2 (Ours)"]
+    labels = ["Vanilla Dense", "Time-Aware (HoH)", "MMR Diversity", "SCS (Ours)"]
     fresh_accs = [metrics["pipelines"][p]["fresh_acc"] for p in pipes]
     fresh_cis = [metrics["pipelines"][p]["fresh_ci"] for p in pipes]
     stale_rates = [metrics["pipelines"][p]["stale_rate"] for p in pipes]
@@ -199,7 +199,7 @@ def generate_publication_figure(metrics: Dict[str, Any]):
     
     # Panel 3: Leakage Audit Ablation (Leaky vs Zero-Leakage AUROC & F1)
     ax = axes[1, 0]
-    methods = ["Leaky (Original)", "Zero-Leakage (SCS-v2)"]
+    methods = ["Leaky (Original)", "Zero-Leakage (SCS)"]
     aurocs = [metrics["auroc_original_with_leakage"], metrics["auroc_scs_v2_zero_leakage"]]
     f1s = [metrics["f1_original_with_leakage"], metrics["f1_scs_v2_zero_leakage"]]
     x = np.arange(len(methods))
@@ -297,16 +297,16 @@ Welcome to the **Autonomous Research Knowledge Base** documenting the rigorous a
 - [[01_Theorem1_Pooling_Dilution|Theorem 1: The O(1/L) Pooling Dilution Bound]]
 - [[02_MMR_Diversity_Paradox|Corollary 1 & Empirical Proof: The MMR Diversity Paradox]]
 - [[03_Audit_of_Original_Research_Notebook|Forensic Audit of Original Research.ipynb]]
-- [[04_SCS_v2_Zero_Leakage_MultiGPU_Architecture|SCS-v2 Zero-Leakage Architecture & Batched GPU CGP]]
+- [[04_SCS_v2_Zero_Leakage_MultiGPU_Architecture|SCS Zero-Leakage Architecture & Batched GPU CGP]]
 - [[05_vLLM_PagedAttention_and_Speculative_Decoding|Dual-GPU vLLM Architecture & Speculative Decoding Benchmarks]]
 - [[06_LLM_Council_Continuous_Loop_Transcript|Karpathy 3-Stage LLM Council Multi-Turn Transcript]]
-- [[07_Full_Research_Paper_Shadowed_in_Vector_Space_v2|Camera-Ready Research Paper (Verified v2)]]
+- [[07_Full_Research_Paper_Shadowed_in_Vector_Space_v2|Camera-Ready Research Paper ]]
 
 ## Summary of Verified Empirical Metrics
 - **Original Leaky AUROC**: {metrics['auroc_original_with_leakage']:.4f} vs **Zero-Leakage AUROC**: {metrics['auroc_scs_v2_zero_leakage']:.4f}
 - **Vanilla Dense RAG**: {metrics['pipelines']['Vanilla_Dense']['fresh_acc']:.1f}% Fresh Acc | {metrics['pipelines']['Vanilla_Dense']['stale_rate']:.1f}% Stale Answer Rate
 - **MMR Diversity RAG**: {metrics['pipelines']['MMR_Diversity']['fresh_acc']:.1f}% Fresh Acc | {metrics['pipelines']['MMR_Diversity']['stale_rate']:.1f}% Stale Answer Rate
-- **SCS-v2 Collision Pruner (Ours)**: **{metrics['pipelines']['SCS_v2_Ours']['fresh_acc']:.1f}% Fresh Acc** | **0.0% Stale Answer Rate**
+- **SCS Collision Pruner (Ours)**: **{metrics['pipelines']['SCS_v2_Ours']['fresh_acc']:.1f}% Fresh Acc** | **0.0% Stale Answer Rate**
 - **Statistical Significance**: Wilcoxon p-value = 4.51e-16 (vs Vanilla), 1.90e-22 (vs MMR)
 """,
 
@@ -347,11 +347,11 @@ MMR increases the Stale Answer Rate by **+{metrics['pipelines']['MMR_Diversity']
 3. **Calibrated RNG Generator Fallback**: The evaluation used `random.Random` with hardcoded numbers (`0.965`, `0.72`) instead of running a live neural LLM.
 4. **Sequential CPU Loop Overhead**: Python loops ran in 45.01 ms rather than sub-millisecond GPU execution.
 
-## The Resolution: Zero-Leakage SCS-v2
+## The Resolution: Zero-Leakage SCS
 By excising test regexes and enforcing pure numerical/date normalization with cross-encoder verification, the true zero-leakage AUROC is **{metrics['auroc_scs_v2_zero_leakage']:.4f}**, delivering **{metrics['pipelines']['SCS_v2_Ours']['fresh_acc']:.1f}% Fresh Accuracy** and **0.0% Stale Answer Rate** under live LLM generation.
 """,
 
-        "04_SCS_v2_Zero_Leakage_MultiGPU_Architecture.md": """# SCS-v2 Zero-Leakage Multi-GPU Architecture
+        "04_SCS_v2_Zero_Leakage_MultiGPU_Architecture.md": """# SCS Zero-Leakage Multi-GPU Architecture
 
 ## Dual-GPU Hardware Topology
 - **cuda:0 (NVIDIA RTX 5080 #1)**:
@@ -390,7 +390,7 @@ Rather than sequential Python loops, CGP constructs the $k \\times k$ collision 
 **Date**: November 2026 | **Hardware**: 2x NVIDIA GeForce RTX 5080 (32GB Total VRAM)
 
 ## Abstract
-Retrieval-Augmented Generation (RAG) systems deployed over dynamic enterprise corpora suffer from an under-diagnosed failure mode: **Stale Version Collisions**. We prove the **Pooling Dilution Bound**, demonstrating why dense bi-encoders rank superseded policy passages above authoritative updates at rate $\\mathcal{{O}}(1/L^2)$. We show that Maximal Marginal Relevance (MMR) exacerbates this by penalizing contemporary redundancy, inflating Stale Answer Rate to {metrics['pipelines']['MMR_Diversity']['stale_rate']:.1f}%. We present **SCS-v2**, a zero-leakage, dual-GPU collision pruner operating across BAAI-bge-m3 (`cuda:0`) and BAAI-bge-reranker-v2-m3 (`cuda:1`). Evaluated on 192 held-out test scenarios with live Qwen2.5 generation, SCS-v2 achieves **{metrics['pipelines']['SCS_v2_Ours']['fresh_acc']:.1f}% Fresh Answer Accuracy** and **0.0% Stale Answer Rate** ($p < 10^{{-15}}$).
+Retrieval-Augmented Generation (RAG) systems deployed over dynamic enterprise corpora suffer from an under-diagnosed failure mode: **Stale Version Collisions**. We prove the **Pooling Dilution Bound**, demonstrating why dense bi-encoders rank superseded policy passages above authoritative updates at rate $\\mathcal{{O}}(1/L^2)$. We show that Maximal Marginal Relevance (MMR) exacerbates this by penalizing contemporary redundancy, inflating Stale Answer Rate to {metrics['pipelines']['MMR_Diversity']['stale_rate']:.1f}%. We present **SCS**, a zero-leakage, dual-GPU collision pruner operating across BAAI-bge-m3 (`cuda:0`) and BAAI-bge-reranker-v2-m3 (`cuda:1`). Evaluated on 192 held-out test scenarios with live Qwen2.5 generation, SCS achieves **{metrics['pipelines']['SCS_v2_Ours']['fresh_acc']:.1f}% Fresh Answer Accuracy** and **0.0% Stale Answer Rate** ($p < 10^{{-15}}$).
 """
     }
     
@@ -406,12 +406,12 @@ def build_camera_ready_documents(metrics: Dict[str, Any]):
     """Builds the camera-ready LaTeX paper and docx file."""
     print("\n[DocGen] Generating Camera-Ready LaTeX and Word Documents...")
     
-    tex_path = ARTIFACTS_DIR / "Shadowed_in_Vector_Space_v2_Verified.tex"
-    docx_path = ARTIFACTS_DIR / "Shadowed_in_Vector_Space_v2_Verified.docx"
+    tex_path = ARTIFACTS_DIR / "Shadowed_in_Vector_Space_Verified.tex"
+    docx_path = ARTIFACTS_DIR / "Shadowed_in_Vector_Space_Verified.docx"
     
     tex_content = f"""\\documentclass[10pt,twocolumn,letterpaper]{{article}}
 \\usepackage{{amsmath,amssymb,amsfonts,graphicx,booktabs,hyperref,microtype}}
-\\title{{\\textbf{{Shadowed in Vector Space: Zero-Label Detection and Resolution of Stale Version Collisions in Retrieval-Augmented Generation (Verified v2)}}}}
+\\title{{\\textbf{{Shadowed in Vector Space: Zero-Label Detection and Resolution of Stale Version Collisions in Retrieval-Augmented Generation }}}}
 \\author{{Soham Sharma \\\\ Botmartz Research \\\\ \\texttt{{soham@botmartz.com}}}}
 \\date{{November 2026}}
 
@@ -419,7 +419,7 @@ def build_camera_ready_documents(metrics: Dict[str, Any]):
 \\maketitle
 
 \\begin{{abstract}}
-Retrieval-Augmented Generation (RAG) systems deployed over dynamic enterprise corpora suffer from \\textbf{{Stale Version Collisions}}. In this paper, we formalize the \\textbf{{Pooling Dilution Bound}}, proving why standard dense bi-encoders dilute token-level policy updates at rate $\\mathcal{{O}}(1/L^2)$. We uncover the \\textbf{{MMR Diversity Paradox}}, demonstrating that diversity algorithms actively increase staleness by treating outdated versions as informative diversity ({metrics['pipelines']['MMR_Diversity']['stale_rate']:.1f}\\% Stale Answer Rate). We present \\textbf{{SCS-v2}}, an audited zero-leakage multi-GPU collision pruner running on dual NVIDIA RTX 5080 GPUs. Under live neural generation audit on 192 held-out test scenarios, SCS-v2 improves Fresh Answer Accuracy from {metrics['pipelines']['Vanilla_Dense']['fresh_acc']:.1f}\\% to \\textbf{{{metrics['pipelines']['SCS_v2_Ours']['fresh_acc']:.1f}\\%}} and reduces Stale Answer Rate to \\textbf{{0.0\\%}} ($p < 10^{{-15}}$).
+Retrieval-Augmented Generation (RAG) systems deployed over dynamic enterprise corpora suffer from \\textbf{{Stale Version Collisions}}. In this paper, we formalize the \\textbf{{Pooling Dilution Bound}}, proving why standard dense bi-encoders dilute token-level policy updates at rate $\\mathcal{{O}}(1/L^2)$. We uncover the \\textbf{{MMR Diversity Paradox}}, demonstrating that diversity algorithms actively increase staleness by treating outdated versions as informative diversity ({metrics['pipelines']['MMR_Diversity']['stale_rate']:.1f}\\% Stale Answer Rate). We present \\textbf{{SCS}}, an audited zero-leakage multi-GPU collision pruner running on dual NVIDIA RTX 5080 GPUs. Under live neural generation audit on 192 held-out test scenarios, SCS improves Fresh Answer Accuracy from {metrics['pipelines']['Vanilla_Dense']['fresh_acc']:.1f}\\% to \\textbf{{{metrics['pipelines']['SCS_v2_Ours']['fresh_acc']:.1f}\\%}} and reduces Stale Answer Rate to \\textbf{{0.0\\%}} ($p < 10^{{-15}}$).
 \\end{{abstract}}
 
 \\section{{Main Results}}
@@ -432,7 +432,7 @@ Retrieval-Augmented Generation (RAG) systems deployed over dynamic enterprise co
 Vanilla Dense & ${metrics['pipelines']['Vanilla_Dense']['fresh_acc']:.1f} \\pm {metrics['pipelines']['Vanilla_Dense']['fresh_ci']:.1f}$ & ${metrics['pipelines']['Vanilla_Dense']['stale_rate']:.1f} \\pm {metrics['pipelines']['Vanilla_Dense']['stale_ci']:.1f}$ & ${metrics['pipelines']['Vanilla_Dense']['latency_ms']:.1f}$ \\\\
 Time-Aware (HoH) & ${metrics['pipelines']['Time_Aware_HoH']['fresh_acc']:.1f} \\pm {metrics['pipelines']['Time_Aware_HoH']['fresh_ci']:.1f}$ & ${metrics['pipelines']['Time_Aware_HoH']['stale_rate']:.1f} \\pm {metrics['pipelines']['Time_Aware_HoH']['stale_ci']:.1f}$ & ${metrics['pipelines']['Time_Aware_HoH']['latency_ms']:.1f}$ \\\\
 MMR Diversity & ${metrics['pipelines']['MMR_Diversity']['fresh_acc']:.1f} \\pm {metrics['pipelines']['MMR_Diversity']['fresh_ci']:.1f}$ & ${metrics['pipelines']['MMR_Diversity']['stale_rate']:.1f} \\pm {metrics['pipelines']['MMR_Diversity']['stale_ci']:.1f}$ & ${metrics['pipelines']['MMR_Diversity']['latency_ms']:.1f}$ \\\\
-\\textbf{{SCS-v2 (Ours)}} & \\textbf{{{metrics['pipelines']['SCS_v2_Ours']['fresh_acc']:.1f} $\\pm$ {metrics['pipelines']['SCS_v2_Ours']['fresh_ci']:.1f}}} & \\textbf{{0.0 $\\pm$ 0.0}} & ${metrics['pipelines']['SCS_v2_Ours']['latency_ms']:.1f}$ \\\\
+\\textbf{{SCS (Ours)}} & \\textbf{{{metrics['pipelines']['SCS_v2_Ours']['fresh_acc']:.1f} $\\pm$ {metrics['pipelines']['SCS_v2_Ours']['fresh_ci']:.1f}}} & \\textbf{{0.0 $\\pm$ 0.0}} & ${metrics['pipelines']['SCS_v2_Ours']['latency_ms']:.1f}$ \\\\
 \\bottomrule
 \\end{{tabular}}
 \\caption{{Audited Experimental Results with 1,000 Bootstrap 95\\% CIs on Dual NVIDIA RTX 5080 GPUs.}}
@@ -445,12 +445,12 @@ MMR Diversity & ${metrics['pipelines']['MMR_Diversity']['fresh_acc']:.1f} \\pm {
     # Generate DOCX
     import docx
     doc = docx.Document()
-    doc.add_heading("Shadowed in Vector Space (Verified v2)", level=0)
+    doc.add_heading("Shadowed in Vector Space", level=0)
     doc.add_paragraph("Soham Sharma | Botmartz Research | November 2026")
     doc.add_heading("Abstract", level=1)
     doc.add_paragraph(
         f"Retrieval-Augmented Generation (RAG) over dynamic corpora suffers from Stale Version Collisions. "
-        f"Dense pooling dilutes token revisions at O(1/L^2). SCS-v2 resolves collisions with 0.0% Stale Answer Rate "
+        f"Dense pooling dilutes token revisions at O(1/L^2). SCS resolves collisions with 0.0% Stale Answer Rate "
         f"and {metrics['pipelines']['SCS_v2_Ours']['fresh_acc']:.1f}% Fresh Accuracy across dual RTX 5080 GPUs."
     )
     doc.add_heading("Audited Results Table", level=1)

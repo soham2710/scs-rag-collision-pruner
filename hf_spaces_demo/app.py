@@ -65,7 +65,7 @@ def simulate_retrieval_and_pruning(scenario_name, pipeline_choice, lookahead_gam
         outcome_status = "❌ CRITICAL STALE GENERATION (The MMR Diversity Paradox: diversity selection actively purged the fresh update!)."
         staleness_risk = "Severe (47.9% staleness rate - MMR inflated risk by +16.1%)"
 
-    elif pipeline_choice == "SCS-v2 Zero-Leakage Collision Pruner (Ours)":
+    elif pipeline_choice == "SCS Zero-Leakage Collision Pruner (Ours)":
         # SCS detects the token divergence and resolves to the newest timestamp in < 0.5 ms
         retrieved = [
             {"Role": "✅ Current Version (2026)", "Text": data["current_policy"], "Rank": 1, "Status": "Retained (Authoritative)"},
@@ -81,7 +81,7 @@ def simulate_retrieval_and_pruning(scenario_name, pipeline_choice, lookahead_gam
     
     # Speculative decoding throughput simulation based on gamma
     ar_tps = 129.29
-    spec_tps = ar_tps * (1.0 + 0.08 * (lookahead_gamma / 3.0)) if pipeline_choice == "SCS-v2 Zero-Leakage Collision Pruner (Ours)" else ar_tps
+    spec_tps = ar_tps * (1.0 + 0.08 * (lookahead_gamma / 3.0)) if pipeline_choice == "SCS Zero-Leakage Collision Pruner (Ours)" else ar_tps
     
     telemetry = f"""
     ### ⚡ Dual-GPU Telemetry & Performance
@@ -99,10 +99,10 @@ def simulate_retrieval_and_pruning(scenario_name, pipeline_choice, lookahead_gam
     return outcome_status, llm_response, table_md, telemetry
 
 
-with gr.Blocks(title="SCS-v2 RAG Collision Pruner Demo", theme=gr.themes.Soft()) as demo:
+with gr.Blocks(title="SCS RAG Collision Pruner Demo", theme=gr.themes.Soft()) as demo:
     gr.Markdown(
         """
-        # 🛡️ SCS-v2: Zero-Label Collision Resolution in Enterprise RAG
+        # 🛡️ SCS: Zero-Label Collision Resolution in Enterprise RAG
         ### Preventing Silent Hallucinations from Stale Knowledge & The MMR Diversity Paradox
         *Research by Soham Sharma | Powered by Dual NVIDIA GeForce RTX 5080 GPUs*
         
@@ -124,9 +124,9 @@ with gr.Blocks(title="SCS-v2 RAG Collision Pruner Demo", theme=gr.themes.Soft())
                 choices=[
                     "Vanilla Dense RAG (Top-3)",
                     "MMR Diversity RAG (lambda=0.5)",
-                    "SCS-v2 Zero-Leakage Collision Pruner (Ours)"
+                    "SCS Zero-Leakage Collision Pruner (Ours)"
                 ],
-                value="SCS-v2 Zero-Leakage Collision Pruner (Ours)",
+                value="SCS Zero-Leakage Collision Pruner (Ours)",
                 label="2. Choose Retrieval & Context Pipeline"
             )
             gamma_slider = gr.Slider(
@@ -153,7 +153,7 @@ with gr.Blocks(title="SCS-v2 RAG Collision Pruner Demo", theme=gr.themes.Soft())
         ### 📊 Verified 10-Fold Empirical Research Metrics (1,920 Live Neural Queries)
         - **Vanilla Dense RAG**: 52.1% Fresh Accuracy | 31.8% Stale Answer Rate
         - **MMR Diversity RAG**: 37.0% Fresh Accuracy | **47.9% Stale Answer Rate** (*MMR Diversity Paradox verified*)
-        - **SCS-v2 Pruner (Ours)**: **86.5% Fresh Accuracy | 0.0% Stale Answer Rate** ($p = 1.95 \times 10^{-3}$, 10-fold verified)
+        - **SCS Pruner (Ours)**: **86.5% Fresh Accuracy | 0.0% Stale Answer Rate** ($p = 1.95 \times 10^{-3}$, 10-fold verified)
         """
     )
 

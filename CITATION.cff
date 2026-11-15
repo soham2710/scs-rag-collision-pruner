@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "Shadowed in Vector Space: Zero-Label Detection and Resolution of Stale Version Collisions in Retrieval-Augmented Generation"
+type: software
+version: 1.0.0
+date-released: 2026-11-15
+license: MIT
+repository-code: "https://github.com/soham2710/scs-rag-collision-pruner"
+url: "https://huggingface.co/soham27/scs-rag-collision-pruner"
+authors:
+  - family-names: Sharma
+    given-names: Soham
+    affiliation: "Botmartz AI Solutions Pvt Ltd"
+keywords: [rag, retrieval-augmented-generation, stale-data, knowledge-conflict, pytorch]
