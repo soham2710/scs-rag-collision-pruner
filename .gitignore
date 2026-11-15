@@ -1,0 +1,30 @@
+# Python / Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Checkpoints & model weights
+*.pt
+*.bin
+*.safetensors
+*.gguf
+checkpoints/
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Large logs
+*.log

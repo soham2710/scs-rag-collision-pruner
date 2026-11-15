@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scs-pruner"
+version = "0.1.0"
+description = "Zero-Label Collision Detection & Pruning of Stale Documents in RAG"
+readme = "README.md"
+authors = [{ name = "SCS Research Team" }]
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+keywords = ["rag", "retrieval-augmented-generation", "llm", "langchain", "llamaindex", "pruning", "staleness"]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+langchain = ["langchain-core>=0.1.0"]
+llamaindex = ["llama-index-core>=0.10.0"]
+all = ["langchain-core>=0.1.0", "llama-index-core>=0.10.0"]
+
+[project.urls]
+Homepage = "https://huggingface.co/spaces"
+Repository = "https://github.com"

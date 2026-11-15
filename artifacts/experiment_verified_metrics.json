@@ -1,0 +1,36 @@
+{
+  "auroc_original_with_leakage": 0.8014187282986112,
+  "f1_original_with_leakage": 0.8486238532110092,
+  "auroc_scs_v2_zero_leakage": 0.6995781792534722,
+  "f1_scs_v2_zero_leakage": 0.7544204322200393,
+  "pipelines": {
+    "Vanilla_Dense": {
+      "fresh_acc": 52.083333333333336,
+      "fresh_ci": 7.291666666666666,
+      "stale_rate": 31.770833333333332,
+      "stale_ci": 6.510416666666669,
+      "latency_ms": 109.9739910417649
+    },
+    "Time_Aware_HoH": {
+      "fresh_acc": 31.770833333333332,
+      "fresh_ci": 6.25,
+      "stale_rate": 51.5625,
+      "stale_ci": 7.031249999999997,
+      "latency_ms": 181.16892097898094
+    },
+    "MMR_Diversity": {
+      "fresh_acc": 36.97916666666667,
+      "fresh_ci": 6.770833333333334,
+      "stale_rate": 47.91666666666667,
+      "stale_ci": 7.031250000000003,
+      "latency_ms": 94.35157870840764
+    },
+    "SCS_v2_Ours": {
+      "fresh_acc": 86.45833333333334,
+      "fresh_ci": 4.4335937500000036,
+      "stale_rate": 0.0,
+      "stale_ci": 0.0,
+      "latency_ms": 256.63303696370576
+    }
+  }
+}

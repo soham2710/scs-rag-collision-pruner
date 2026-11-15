@@ -1,0 +1,30 @@
+{
+  "total_runs": 48,
+  "seeds_tested": [
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212
+  ],
+  "vanilla_rag": {
+    "fresh_accuracy": 50.0,
+    "stale_hallucination_rate": 25.0
+  },
+  "mmr_rag": {
+    "fresh_accuracy": 50.0,
+    "stale_hallucination_rate": 25.0
+  },
+  "scs_pytorch_rag": {
+    "fresh_accuracy": 75.0,
+    "stale_hallucination_rate": 0.0,
+    "collision_prune_success_rate": 100.0
+  }
+}
