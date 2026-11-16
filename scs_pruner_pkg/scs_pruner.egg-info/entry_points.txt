@@ -1,0 +1,3 @@
+[console_scripts]
+scs = scs_pruner.cli:main
+scs-audit = scs_pruner.cli:audit_main

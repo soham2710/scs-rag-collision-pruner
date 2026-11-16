@@ -1,8 +1,12 @@
 README.md
 pyproject.toml
 scs_pruner/__init__.py
+scs_pruner/audit.py
+scs_pruner/cli.py
+scs_pruner/core.py
 scs_pruner.egg-info/PKG-INFO
 scs_pruner.egg-info/SOURCES.txt
 scs_pruner.egg-info/dependency_links.txt
+scs_pruner.egg-info/entry_points.txt
 scs_pruner.egg-info/requires.txt
 scs_pruner.egg-info/top_level.txt

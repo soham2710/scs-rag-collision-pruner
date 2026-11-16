@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scs-pruner"
-version = "0.1.0"
+version = "1.0.0"
 description = "Zero-Label Collision Detection & Pruning of Stale Documents in RAG"
 readme = "README.md"
-authors = [{ name = "SCS Research Team" }]
+authors = [{ name = "Soham Chakraborty", email = "soham@botmartz.com" }]
 license = { text = "MIT" }
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -15,15 +15,23 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-keywords = ["rag", "retrieval-augmented-generation", "llm", "langchain", "llamaindex", "pruning", "staleness"]
+keywords = ["rag", "retrieval-augmented-generation", "llm", "vector-search", "audit", "pruning", "temporal-rag"]
 requires-python = ">=3.9"
-dependencies = []
+dependencies = [
+    "numpy>=1.20.0"
+]
 
 [project.optional-dependencies]
+torch = ["torch>=2.0.0"]
 langchain = ["langchain-core>=0.1.0"]
 llamaindex = ["llama-index-core>=0.10.0"]
-all = ["langchain-core>=0.1.0", "llama-index-core>=0.10.0"]
+all = ["torch>=2.0.0", "langchain-core>=0.1.0", "llama-index-core>=0.10.0"]
+
+[project.scripts]
+scs = "scs_pruner.cli:main"
+scs-audit = "scs_pruner.cli:audit_main"
 
 [project.urls]
-Homepage = "https://huggingface.co/spaces"
-Repository = "https://github.com"
+Repository = "https://github.com/soham2710/scs-rag-collision-pruner"
+Paper = "https://doi.org/10.5281/zenodo.24243871"
+"Hugging Face" = "https://huggingface.co/soham27/scs-rag-collision-pruner"

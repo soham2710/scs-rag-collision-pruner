@@ -1,0 +1,35 @@
+{
+  "embedder": "BAAI/bge-m3",
+  "generator": "Qwen/Qwen2.5-1.5B-Instruct",
+  "hardware": "Dual RTX 5080",
+  "hoh_benchmark": {
+    "N": 98,
+    "vanilla": {
+      "fresh": 32.6530612244898,
+      "stale": 33.6734693877551
+    },
+    "mmr": {
+      "fresh": 32.6530612244898,
+      "stale": 33.6734693877551
+    },
+    "scs": {
+      "fresh": 76.53061224489795,
+      "stale": 0.0
+    }
+  },
+  "stalebench": {
+    "N": 24,
+    "vanilla": {
+      "fresh": 54.166666666666664,
+      "stale": 41.66666666666667
+    },
+    "mmr": {
+      "fresh": 54.166666666666664,
+      "stale": 41.66666666666667
+    },
+    "scs": {
+      "fresh": 100.0,
+      "stale": 0.0
+    }
+  }
+}

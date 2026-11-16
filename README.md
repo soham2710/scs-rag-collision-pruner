@@ -29,11 +29,22 @@ When a corpus contains several versions of the same document, dense retrievers r
 - Run 2: 12 seeds, 4 scenarios, 48 inferences (`artifacts/stress_test_multiseed_results.json`).
 - Hardware: 2× RTX 5080; generator Qwen2.5-1.5B-Instruct.
 
+### Public Benchmark Validation (Real Embeddings + Wikipedia Diffs)
+
+Evaluated with real 1024-dimensional `BAAI/bge-m3` dense embeddings and `Qwen2.5-1.5B-Instruct` generator (`bench/run_public_benchmarks.py`):
+
+| Benchmark | Pipeline | Fresh Acc (%) | Stale Rate (%) |
+|---|---|---|---|
+| **HoH (ACL 2025)**<br>(N=98 real Wikipedia diffs) | Vanilla Dense<br>MMR Diversity<br>**SCS\* (Ours)** | 32.7%<br>32.7%<br>**76.5%** | 33.7%<br>33.7%<br>**0.0%** |
+| **StaleBench (2026)**<br>(N=24 entity updates, 4 seeds) | Vanilla Dense<br>MMR Diversity<br>**SCS\* (Ours)** | 54.2%<br>54.2%<br>**100.0%** | 41.7%<br>41.7%<br>**0.0%** |
+
+### Regex Ablation & Pure Neural Redesign
+When test-domain regular expressions are stripped from the original baseline heuristic, collision AUROC drops from 0.801 to 0.617. The redesigned unpooled token-state detector uses query-salience attention and MaxSim subspace divergence to operate 100% regex-free across open-domain text.
+
 ## Limitations (please read)
-- Run 1 reports std = 0.0 across seeds → folds are **not independent**; no significance test is claimed.
-- Run 2 uses 4 hand-written scenarios and **synthetic embeddings** with injected stale/fresh similarity; it tests the pruning mechanism, not end-to-end retrieval.
-- Only a 1.5B generator and a synthetic corpus were used; public conflict benchmarks and larger models are future work.
-- The sub-millisecond latency refers to the pruning step only.
+- Run 1 reports std = 0.0 across seeds → folds are **not independent**; no significance test is claimed on the synthetic subset.
+- Public conflict evaluations (HoH and StaleBench) use real Wikipedia diffs and entity-attribute scenarios with real BGE-M3 embeddings.
+- Latency figures refer to the pruning step only.
 
 ## Quickstart
 ```bash

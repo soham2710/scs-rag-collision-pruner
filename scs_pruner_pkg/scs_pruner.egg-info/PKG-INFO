@@ -1,23 +1,28 @@
 Metadata-Version: 2.4
 Name: scs-pruner
-Version: 0.1.0
+Version: 1.0.0
 Summary: Zero-Label Collision Detection & Pruning of Stale Documents in RAG
-Author: SCS Research Team
+Author-email: Soham Chakraborty <soham@botmartz.com>
 License: MIT
-Project-URL: Homepage, https://huggingface.co/spaces
-Project-URL: Repository, https://github.com
-Keywords: rag,retrieval-augmented-generation,llm,langchain,llamaindex,pruning,staleness
+Project-URL: Repository, https://github.com/soham2710/scs-rag-collision-pruner
+Project-URL: Paper, https://doi.org/10.5281/zenodo.24243871
+Project-URL: Hugging Face, https://huggingface.co/soham27/scs-rag-collision-pruner
+Keywords: rag,retrieval-augmented-generation,llm,vector-search,audit,pruning,temporal-rag
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
 Requires-Python: >=3.9
 Description-Content-Type: text/markdown
+Requires-Dist: numpy>=1.20.0
+Provides-Extra: torch
+Requires-Dist: torch>=2.0.0; extra == "torch"
 Provides-Extra: langchain
 Requires-Dist: langchain-core>=0.1.0; extra == "langchain"
 Provides-Extra: llamaindex
 Requires-Dist: llama-index-core>=0.10.0; extra == "llamaindex"
 Provides-Extra: all
+Requires-Dist: torch>=2.0.0; extra == "all"
 Requires-Dist: langchain-core>=0.1.0; extra == "all"
 Requires-Dist: llama-index-core>=0.10.0; extra == "all"
 

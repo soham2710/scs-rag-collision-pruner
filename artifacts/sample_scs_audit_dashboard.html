@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SCS Stale-Version Vector Index Audit Report</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f7fafc; color: #2d3748; margin: 0; padding: 24px; }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 24px; margin-bottom: 24px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+        .stat-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; text-align: center; }
+        .stat-val { font-size: 28px; font-weight: 700; color: #1a202c; }
+        .stat-lbl { font-size: 13px; color: #718096; text-transform: uppercase; margin-top: 4px; }
+        .badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; color: #fff; background: #e53e3e; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 14px; }
+        th { background: #edf2f7; text-align: left; padding: 10px; font-weight: 600; color: #4a5568; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 style="margin: 0; font-size: 24px;">SCS* Stale-Version Vector Index Audit</h1>
+                <p style="margin: 4px 0 0; color: #718096;">Automated Vector Collision and Temporal Shadowing Risk Assessment</p>
+            </div>
+            <div>
+                <span class="badge">RISK: CRITICAL</span>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="stat-box">
+                <div class="stat-val">4</div>
+                <div class="stat-lbl">Total Documents Scanned</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-val" style="color: #e53e3e;">50.0%</div>
+                <div class="stat-lbl">Index Collision Rate</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-val" style="color: #e53e3e;">2</div>
+                <div class="stat-lbl">Shadowed Stale Chunks</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-val">0.1 ms</div>
+                <div class="stat-lbl">Audit Execution Latency</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-top: 0; font-size: 18px;">Detected Version Collision Pairs</h2>
+        <p style="color: #718096; font-size: 14px;">The following passages share high embedding cosine proximity, causing dense retrieval to return obsolete versions alongside updated ones.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 120px;">Collision Score</th>
+                    <th>Fresh Version (Retained)</th>
+                    <th>Shadowed Version (Pruned)</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr style="border-bottom: 1px solid #edf2f7;">
+                <td style="padding: 10px; font-weight: 600; color: #2d3748;">0.7722</td>
+                <td style="padding: 10px; color: #38a169;"><b>[ID: pol_2025]</b> (v.20250101.0)<br><span style="font-size: 12px; color: #4a5568;">2025 Refund Policy: Standard refund window is extended to 30 days for all enterprise software purchases....</span></td>
+                <td style="padding: 10px; color: #e53e3e;"><b>[ID: pol_2024]</b> (v.20240101.0)<br><span style="font-size: 12px; color: #718096; text-decoration: line-through;">2024 Refund Policy: Standard refund window is strictly 14 days for all enterprise software purchases....</span></td>
+            </tr>
+            
+            <tr style="border-bottom: 1px solid #edf2f7;">
+                <td style="padding: 10px; font-weight: 600; color: #2d3748;">0.727</td>
+                <td style="padding: 10px; color: #38a169;"><b>[ID: pol_2026]</b> (v.20260101.0)<br><span style="font-size: 12px; color: #4a5568;">2026 Refund Policy: Standard refund window is amended to 45 calendar days for all enterprise software purchases....</span></td>
+                <td style="padding: 10px; color: #e53e3e;"><b>[ID: pol_2024]</b> (v.20240101.0)<br><span style="font-size: 12px; color: #718096; text-decoration: line-through;">2024 Refund Policy: Standard refund window is strictly 14 days for all enterprise software purchases....</span></td>
+            </tr>
+            
+            <tr style="border-bottom: 1px solid #edf2f7;">
+                <td style="padding: 10px; font-weight: 600; color: #2d3748;">0.7845</td>
+                <td style="padding: 10px; color: #38a169;"><b>[ID: pol_2026]</b> (v.20260101.0)<br><span style="font-size: 12px; color: #4a5568;">2026 Refund Policy: Standard refund window is amended to 45 calendar days for all enterprise software purchases....</span></td>
+                <td style="padding: 10px; color: #e53e3e;"><b>[ID: pol_2025]</b> (v.20250101.0)<br><span style="font-size: 12px; color: #718096; text-decoration: line-through;">2025 Refund Policy: Standard refund window is extended to 30 days for all enterprise software purchases....</span></td>
+            </tr>
+            
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="text-align: center; color: #a0aec0; font-size: 12px; margin-top: 24px;">
+        Generated by SCS* Pruner v1.0.0 &bull; <a href="https://doi.org/10.5281/zenodo.24243871" style="color: #4a5568;">Zenodo DOI: 10.5281/zenodo.24243871</a> &bull; MIT License
+    </div>
+</body>
+</html>
