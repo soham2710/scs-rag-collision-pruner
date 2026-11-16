@@ -2,6 +2,7 @@
 
 **Zero-Label Detection and Resolution of Stale Version Collisions in Retrieval-Augmented Generation**
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24243871.svg)](https://doi.org/10.5281/zenodo.24243871)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/soham2710/scs-rag-collision-pruner)](https://github.com/soham2710/scs-rag-collision-pruner/releases)
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97-soham27%2Fscs--rag--collision--pruner-yellow)](https://huggingface.co/soham27/scs-rag-collision-pruner)
@@ -65,6 +66,7 @@ See [CITATION.cff](CITATION.cff).
   title  = {Shadowed in Vector Space: Zero-Label Detection and Resolution of Stale Version Collisions in Retrieval-Augmented Generation},
   author = {Sharma, Soham},
   year   = {2026},
+  doi    = {10.5281/zenodo.24243871},
   note   = {v1.0.0, https://github.com/soham2710/scs-rag-collision-pruner}
 }
 ```

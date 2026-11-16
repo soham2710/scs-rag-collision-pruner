@@ -20,6 +20,7 @@ pipeline_tag: text-generation
 Official repository for **Semantic Collision Scorer ($\text{SCS}^*$)**, a drop-in zero-latency pruner for stale document collisions in RAG pipelines.
 
 [![GitHub](https://img.shields.io/badge/GitHub-soham2710%2Fscs--rag--collision--pruner-black?logo=github)](https://github.com/soham2710/scs-rag-collision-pruner)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24243871.svg)](https://doi.org/10.5281/zenodo.24243871)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
 

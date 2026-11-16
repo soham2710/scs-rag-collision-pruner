@@ -5,6 +5,7 @@ type: software
 version: 1.0.0
 date-released: 2026-11-15
 license: MIT
+doi: 10.5281/zenodo.24243871
 repository-code: "https://github.com/soham2710/scs-rag-collision-pruner"
 url: "https://huggingface.co/soham27/scs-rag-collision-pruner"
 authors:
