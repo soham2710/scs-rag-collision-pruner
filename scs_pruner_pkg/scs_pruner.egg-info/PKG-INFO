@@ -2,7 +2,7 @@ Metadata-Version: 2.4
 Name: scs-pruner
 Version: 1.0.0
 Summary: Zero-Label Collision Detection & Pruning of Stale Documents in RAG
-Author-email: Soham Chakraborty <soham@botmartz.com>
+Author-email: Soham Sharma <soham@botmartz.com>
 License: MIT
 Project-URL: Repository, https://github.com/soham2710/scs-rag-collision-pruner
 Project-URL: Paper, https://doi.org/10.5281/zenodo.24243871

@@ -7,7 +7,7 @@ name = "scs-pruner"
 version = "1.0.0"
 description = "Zero-Label Collision Detection & Pruning of Stale Documents in RAG"
 readme = "README.md"
-authors = [{ name = "Soham Chakraborty", email = "soham@botmartz.com" }]
+authors = [{ name = "Soham Sharma", email = "soham@botmartz.com" }]
 license = { text = "MIT" }
 classifiers = [
     "Programming Language :: Python :: 3",

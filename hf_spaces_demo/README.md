@@ -83,8 +83,9 @@ retriever = ContextualCompressionRetriever(
 ---
 
 ## 📜 Full Manuscripts & Figures
-- [Full Word Manuscript (.docx)](https://github.com/soham2710/scs-rag-collision-pruner/blob/main/artifacts/Shadowed_in_Vector_Space_Verified.docx)
-- [LaTeX Camera-Ready (.tex)](https://github.com/soham2710/scs-rag-collision-pruner/blob/main/artifacts/Shadowed_in_Vector_Space_Verified.tex)
+- [Full PDF Manuscript (.pdf)](https://github.com/soham2710/scs-rag-collision-pruner/blob/main/Shadowed_in_Vector_Space.pdf)
+- [Full Word Manuscript (.docx)](https://github.com/soham2710/scs-rag-collision-pruner/blob/main/artifacts/Shadowed_in_Vector_Space.docx)
+- [LaTeX Camera-Ready (.tex)](https://github.com/soham2710/scs-rag-collision-pruner/blob/main/artifacts/Shadowed_in_Vector_Space.tex)
 - [300 DPI 8-Panel Publication Figure](https://github.com/soham2710/scs-rag-collision-pruner/blob/main/artifacts/scs_multigpu_8panel.png)
 
 ```bibtex
